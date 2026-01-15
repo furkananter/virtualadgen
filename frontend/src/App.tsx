@@ -4,10 +4,11 @@ import { LandingPage } from '@/pages/landing';
 import { LoginPage } from '@/pages/login';
 import { WorkflowsPage } from '@/pages/workflows';
 import { WorkflowEditorPage } from '@/pages/workflow-editor';
+import { WorkflowHistoryPage } from '@/pages/workflow-history';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
 import { useThemeStore } from '@/stores/theme-store';
-import { useEffect } from 'react';
 
 import { Toaster } from 'sonner';
 
@@ -15,22 +16,8 @@ const queryClient = new QueryClient();
 
 function App() {
   useAuth();
-  const { theme, applyTheme } = useThemeStore();
-
-  useEffect(() => {
-    applyTheme();
-
-    // Listen for system theme changes if theme is set to 'system'
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = () => {
-      if (useThemeStore.getState().theme === 'system') {
-        applyTheme();
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [theme, applyTheme]);
+  useTheme();
+  const theme = useThemeStore((state) => state.theme);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -40,30 +27,13 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route
-            path="/workflows"
-            element={
-              <ProtectedRoute>
-                <WorkflowsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/workflows/new"
-            element={
-              <ProtectedRoute>
-                <WorkflowEditorPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/workflows/:id"
-            element={
-              <ProtectedRoute>
-                <WorkflowEditorPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/workflows" element={<WorkflowsPage />} />
+            <Route path="/workflows/new" element={<WorkflowEditorPage />} />
+            <Route path="/workflows/:id" element={<WorkflowEditorPage />} />
+            <Route path="/workflows/:id/history" element={<WorkflowHistoryPage />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

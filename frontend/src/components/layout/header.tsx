@@ -17,8 +17,8 @@ export const Header = () => {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${isLanding
-        ? 'bg-background/80 backdrop-blur-md border-border/10'
-        : 'bg-background/80 backdrop-blur-md border-border'
+      ? 'bg-background/80 backdrop-blur-md border-border/10'
+      : 'bg-background/80 backdrop-blur-md border-border'
       }`}>
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
@@ -47,7 +47,7 @@ export const Header = () => {
               <div className="flex items-center gap-3 pr-3 border-r border-border">
                 <div className="h-9 w-9 rounded-full ring-2 ring-border overflow-hidden bg-muted flex items-center justify-center">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt={user.name || ''} className="h-full w-full object-cover" />
+                    <img src={user.avatar_url} alt={user.name || ''} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <UserIcon className="h-5 w-5 text-muted-foreground" />
                   )}
@@ -94,8 +94,8 @@ const NavLink = ({ to, children, active }: { to: string, children: React.ReactNo
   <Link
     to={to}
     className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${active
-        ? 'bg-primary text-primary-foreground shadow-sm'
-        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+      ? 'bg-primary text-primary-foreground shadow-sm'
+      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
       }`}
   >
     {children}

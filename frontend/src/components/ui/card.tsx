@@ -13,7 +13,15 @@ function Card({ className, children, ...props }: React.ComponentProps<"div">) {
       <Squircle
         cornerRadius={20}
         cornerSmoothing={1}
-        className="absolute inset-0 bg-card shadow-[inset_0_0_0_1.5px_var(--border)] group-data-[selected=true]:shadow-[inset_0_0_0_2.5px_var(--primary)] transition-all duration-200"
+        className={cn(
+          "absolute inset-0 bg-card dark:bg-muted transition-all duration-200",
+          "shadow-[inset_0_0_0_1px_var(--border)] dark:shadow-none",
+          "group-data-[selected=true]:shadow-[inset_0_0_0_2px_var(--primary)]",
+          "group-data-[status=RUNNING]:shadow-[inset_0_0_0_2px_#10b981]",
+          "group-data-[status=COMPLETED]:shadow-[inset_0_0_0_2px_#10b981]",
+          "group-data-[status=FAILED]:shadow-[inset_0_0_0_2px_#ef4444]",
+          "group-data-[status=PAUSED]:shadow-[inset_0_0_0_2px_#f59e0b]"
+        )}
       />
       <div data-slot="card" className="relative flex flex-col h-full z-10">
         {children}

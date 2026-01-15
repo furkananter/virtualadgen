@@ -8,30 +8,26 @@ import { useEffect } from 'react';
 import { useWorkflowQuery } from '@/lib/queries/use-workflow-query';
 import { useWorkflowStore } from '@/stores/workflow-store';
 import { useCanvasStore } from '@/stores/canvas-store';
-import { Loader2 } from 'lucide-react';
+import { LoadingScreen } from '@/components/shared/loading-screen';
+import { cn } from '@/lib/utils';
+import type { NodeData } from '@/types/nodes';
 
 export const WorkflowEditorPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: workflow, isLoading, error } = useWorkflowQuery(id);
   const { setCurrentWorkflow } = useWorkflowStore();
-  const { setNodes, setEdges } = useCanvasStore();
+  const { setNodes, setEdges, selectedNodeId } = useCanvasStore();
 
   useEffect(() => {
     if (workflow) {
       setCurrentWorkflow(workflow);
-      setNodes((workflow.nodes || []) as unknown as Node[]);
+      setNodes((workflow.nodes || []) as unknown as Node<NodeData>[]);
       setEdges((workflow.edges || []) as unknown as Edge[]);
     }
   }, [workflow, setCurrentWorkflow, setNodes, setEdges]);
 
   if (isLoading) {
-    return (
-      <div className="h-screen flex flex-col bg-background">
-        <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Initializing Canvas..." />;
   }
 
   if (error) {
@@ -51,14 +47,26 @@ export const WorkflowEditorPage = () => {
     <div className="h-screen flex flex-col overflow-hidden bg-background">
       <main className="flex-1 relative flex overflow-hidden">
         <ReactFlowProvider>
+          {/* Left Sidebar */}
           <div className="w-64 shrink-0 h-full">
             <NodePalette />
           </div>
+
+          {/* Main Canvas Area */}
           <div className="flex-1 relative">
             <WorkflowCanvas />
           </div>
-          <div className="w-80 shrink-0 border-l bg-card overflow-y-auto no-scrollbar">
-            <ConfigPanel />
+
+          {/* Right Config Sidebar - Contextual */}
+          <div
+            className={cn(
+              "h-full border-l transition-all duration-500 ease-in-out overflow-hidden shrink-0",
+              selectedNodeId ? "w-80 opacity-100" : "w-0 opacity-0 border-l-0"
+            )}
+          >
+            <div className="w-80 h-full overflow-y-auto no-scrollbar">
+              <ConfigPanel />
+            </div>
           </div>
         </ReactFlowProvider>
       </main>

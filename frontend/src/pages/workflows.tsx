@@ -3,6 +3,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Plus, Workflow as WorkflowIcon } from 'lucide-react';
 import { useWorkflowsQuery } from '@/lib/queries/use-workflows-query';
+import { LoadingScreen } from '@/components/shared/loading-screen';
 import { useCreateWorkflow } from '@/lib/mutations/use-create-workflow';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
@@ -42,10 +43,8 @@ export const WorkflowsPage = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-40 rounded-xl bg-muted animate-pulse" />
-              ))}
+            <div className="py-20">
+              <LoadingScreen message="Fetching your workflows..." />
             </div>
           ) : workflows && workflows.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

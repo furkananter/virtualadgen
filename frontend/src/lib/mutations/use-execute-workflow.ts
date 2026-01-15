@@ -1,10 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { workflowApi } from '@/lib/api';
 import { useExecutionStore } from '@/stores/execution-store';
+import { useDebugStore } from '@/stores/debug-store';
 
 export const useExecuteWorkflow = () => {
   const queryClient = useQueryClient();
   const { setCurrentExecution, setIsExecuting } = useExecutionStore();
+  const { setIsPaused } = useDebugStore();
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
@@ -16,9 +18,20 @@ export const useExecuteWorkflow = () => {
       // @ts-ignore - database type vs api response
       setCurrentExecution({ id: data.execution_id, status: data.status });
       queryClient.invalidateQueries({ queryKey: ['executions'] });
+      queryClient.invalidateQueries({ queryKey: ['node-executions', data.execution_id] });
+
+      // Backend runs synchronously, so when we get the response the execution is done
+      if (data.status === 'PAUSED') {
+        setIsExecuting(false);
+        setIsPaused(true);
+      } else if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(data.status)) {
+        setIsExecuting(false);
+        setIsPaused(false);
+      }
     },
     onError: () => {
       setIsExecuting(false);
+      setIsPaused(false);
     }
   });
 };

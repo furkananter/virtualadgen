@@ -104,45 +104,53 @@
   }
 
   body {
-    @apply bg-background text-foreground tracking-tight subpixel-antialiased transition-colors duration-300;
+    @apply bg-background text-foreground tracking-tight subpixel-antialiased;
+  }
+
+  /* Remove default ReactFlow node styles */
+  .react-flow__node {
+    outline: none !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
   }
 }
 
+/* Custom Utilities */
+@utility glass {
+  @apply backdrop-blur-xl border transition-all;
+  @apply bg-white/3 border-white/8 dark:bg-white/2 dark:border-white/5;
+}
+
+@utility text-gradient {
+  @apply bg-clip-text text-transparent bg-linear-to-br from-current to-current/50;
+}
+
+@utility bg-grid {
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, currentColor 1px, transparent 1px),
+    linear-gradient(to bottom, currentColor 1px, transparent 1px);
+  @apply opacity-[0.03] dark:opacity-[0.05];
+}
+
 @layer utilities {
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-slow-rotate {
-    animation: slow-rotate 20s linear infinite;
-  }
-
-  /* Dynamically adjust glass based on theme */
-  .glass {
-    @apply backdrop-blur-xl border transition-all;
-    @apply bg-white/3 border-white/8 dark:bg-white/2 dark:border-white/5;
-  }
-
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-linear-to-br from-current to-current/50;
-  }
-
-  .bg-grid {
-    background-size: 40px 40px;
-    background-image:
-      linear-gradient(to right, currentColor 1px, transparent 1px),
-      linear-gradient(to bottom, currentColor 1px, transparent 1px);
-    @apply opacity-[0.03] dark:opacity-[0.05];
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+}
 
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+@utility animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@utility animate-slow-rotate {
+  animation: slow-rotate 20s linear infinite;
 }
 
 @keyframes float {

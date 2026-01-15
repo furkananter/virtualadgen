@@ -11,14 +11,18 @@ import {
   LogOut,
   CreditCard,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import type { NodeType } from '@/types/database';
 import { Squircle } from '@squircle-js/react';
 import { useAuthStore } from '@/stores/auth-store';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { supabase } from '@/config/supabase';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useCanvasStore } from '@/stores/canvas-store';
+import { toast } from 'sonner';
+import { generateMagicTemplate } from '@/lib/templates';
 
 interface NodeConfig {
   label: string;
@@ -40,8 +44,18 @@ const NODE_TYPES = Object.entries(NODE_CONFIGS).map(([type, config]) => ({
 }));
 
 export const NodePalette = () => {
+  const { id } = useParams<{ id: string }>();
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { setNodes, setEdges, setSelectedNodeId } = useCanvasStore();
+
+  const handleCreateExample = () => {
+    const { nodes, edges } = generateMagicTemplate();
+    setNodes(nodes);
+    setEdges(edges);
+    setSelectedNodeId(null);
+    toast.success('Example workflow generated!');
+  };
 
   const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: NodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
@@ -55,7 +69,6 @@ export const NodePalette = () => {
 
   return (
     <aside className="h-full border-r bg-card/30 backdrop-blur-3xl flex flex-col w-64 select-none">
-      {/* Brand area */}
       <div className="p-6 pb-4 flex items-center gap-3 border-b border-border/10">
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="w-9 h-9 bg-foreground rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-lg shadow-foreground/10">
@@ -65,7 +78,6 @@ export const NodePalette = () => {
         </Link>
       </div>
 
-      {/* Navigation section */}
       <div className="px-4 py-3 flex flex-col gap-1.5 overflow-y-auto no-scrollbar flex-1">
         <Link to="/workflows">
           <Squircle
@@ -78,14 +90,44 @@ export const NodePalette = () => {
           </Squircle>
         </Link>
 
-        {/* Library header */}
+        {id && (
+          <div className="flex flex-col gap-1.5 mt-2">
+            <Link to={`/workflows/${id}/history`}>
+              <Squircle
+                cornerRadius={14}
+                cornerSmoothing={1}
+                className="flex items-center gap-3 p-3 w-full border border-border/40 bg-card/50 hover:bg-card hover:border-sidebar-ring transition-all group active:scale-95"
+              >
+                <CreditCard className="h-4 w-4 opacity-70 group-hover:opacity-100" />
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold tracking-tight leading-none">Archives</span>
+                  <span className="text-[9px] text-muted-foreground font-medium">History & Logs</span>
+                </div>
+              </Squircle>
+            </Link>
+
+            <button onClick={handleCreateExample} className="w-full outline-none text-left">
+              <Squircle
+                cornerRadius={14}
+                cornerSmoothing={1}
+                className="flex items-center gap-3 p-3 w-full border border-dashed border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all group active:scale-95"
+              >
+                <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-bold text-primary tracking-tight leading-none">Magic Template</span>
+                  <span className="text-[9px] text-primary/70 font-medium">Auto-build Ad Flow</span>
+                </div>
+              </Squircle>
+            </button>
+          </div>
+        )}
+
         <div className="mt-6 mb-2 flex items-center justify-between px-2 text-muted-foreground/50">
           <h2 className="text-[10px] font-bold uppercase tracking-[0.25em]">
             Library
           </h2>
         </div>
 
-        {/* Draggable nodes */}
         <div className="flex flex-col gap-2">
           {NODE_TYPES.map((node) => (
             <Squircle
@@ -103,14 +145,13 @@ export const NodePalette = () => {
         </div>
       </div>
 
-      {/* Account bottom section using Radix Popover */}
       <div className="p-4 border-t bg-muted/10">
         <Popover>
           <PopoverTrigger asChild>
             <button className="flex items-center gap-3 p-2 w-full transition-all active:scale-95 hover:opacity-100 opacity-80 group text-left outline-none cursor-pointer">
               <Squircle cornerRadius={12} cornerSmoothing={1} className="w-10 h-10 border border-border shadow-sm overflow-hidden shrink-0 group-hover:border-primary transition-colors">
                 {user?.avatar_url ? (
-                  <img src={user.avatar_url} alt={user.name || ''} className="w-full h-full object-cover" />
+                  <img src={user.avatar_url} alt={user.name || ''} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-full h-full bg-primary/10 flex items-center justify-center font-bold text-primary">
                     {user?.name?.charAt(0) || 'U'}

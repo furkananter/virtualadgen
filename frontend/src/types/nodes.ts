@@ -4,4 +4,5 @@ export interface NodeData {
   has_breakpoint?: boolean;
   status?: string;
   execution_error?: string;
+  execution_data?: any;
 }

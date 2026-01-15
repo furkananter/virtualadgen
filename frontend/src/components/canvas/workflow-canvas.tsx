@@ -5,6 +5,7 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useDebugStore } from '@/stores/debug-store';
 import { useRealtime } from '@/hooks/use-realtime';
+import { useNodeExecutionsQuery } from '@/lib/queries/use-node-executions-query';
 import {
   TextInputNode,
   ImageInputNode,
@@ -41,6 +42,9 @@ export const WorkflowCanvas = () => {
   // Realtime subscription for execution status
   useRealtime(currentExecution?.id || null);
 
+  // Fetch node executions when execution exists (syncs to debug store)
+  useNodeExecutionsQuery(currentExecution?.id || null);
+
   const {
     nodes,
     edges,
@@ -61,6 +65,7 @@ export const WorkflowCanvas = () => {
           ...node.data,
           status: execution?.status,
           execution_error: execution?.error_message,
+          execution_data: execution?.output_data,
         },
       };
     });
@@ -127,6 +132,7 @@ export const WorkflowCanvas = () => {
         onDrop={onDrop}
         onDragOver={onDragOver}
         nodeTypes={memoizedNodeTypes}
+        proOptions={{ hideAttribution: true }}
         fitView
       >
         <Background
@@ -136,7 +142,10 @@ export const WorkflowCanvas = () => {
           className="opacity-20"
           color="currentColor"
         />
-        <Controls className="bg-card! border-border! shadow-xl! rounded-xl! overflow-hidden p-1" />
+        <Controls
+          showInteractive={false}
+          className="bg-card/40! backdrop-blur-xl! border-border/40! shadow-2xl! rounded-2xl! overflow-hidden p-0.5! flex flex-col gap-0.5"
+        />
         <Panel position="top-right">
           <CanvasToolbar />
         </Panel>

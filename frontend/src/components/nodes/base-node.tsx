@@ -11,7 +11,6 @@ interface BaseNodeProps extends NodeProps<NodeData> {
   title: string;
   icon?: ReactNode;
   children: ReactNode;
-  status?: NodeExecutionStatus;
 }
 
 const ConnectionHandle = ({ type, position, id }: { type: 'target' | 'source', position: Position, id?: string }) => {
@@ -43,24 +42,43 @@ export const BaseNode = ({
   title,
   icon,
   children,
-  status,
   selected,
   data
 }: BaseNodeProps) => {
-  const getStatusColor = (s?: NodeExecutionStatus) => {
+  const status = data.status as NodeExecutionStatus | undefined;
+  const getStatusIndicator = (s?: NodeExecutionStatus) => {
     switch (s) {
       case 'RUNNING': return 'bg-primary animate-pulse';
-      case 'COMPLETED': return 'bg-green-500';
+      case 'COMPLETED': return 'bg-emerald-500';
       case 'FAILED': return 'bg-red-500';
-      case 'PAUSED': return 'bg-yellow-500';
+      case 'PAUSED': return 'bg-amber-500 animate-pulse';
       default: return 'bg-muted-foreground/30';
+    }
+  };
+
+  const getCardStyles = (s?: NodeExecutionStatus) => {
+    switch (s) {
+      case 'RUNNING':
+        return '';
+      case 'COMPLETED':
+        return '';
+      case 'FAILED':
+        return '';
+      case 'PAUSED':
+        return '';
+      default:
+        return '';
     }
   };
 
   return (
     <Card
-      className="min-w-[200px] max-w-[320px] relative overflow-visible!"
+      className={cn(
+        "min-w-[200px] max-w-[320px] relative overflow-visible! transition-all duration-300",
+        getCardStyles(status)
+      )}
       data-selected={selected}
+      data-status={status}
     >
       <CardHeader className="p-3 pb-2 flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center gap-2">
@@ -73,7 +91,11 @@ export const BaseNode = ({
               B
             </Badge>
           )}
-          <div className={`h-2 w-2 rounded-full ${getStatusColor(status)}`} />
+          {status === 'RUNNING' ? (
+            <div className="h-3 w-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <div className={`h-2.5 w-2.5 rounded-full ${getStatusIndicator(status)}`} />
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-3 pt-0 text-[11px] font-medium opacity-80 overflow-hidden">
