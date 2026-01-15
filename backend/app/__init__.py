@@ -1,0 +1,1 @@
+"""VisualAdGen Backend Application."""
