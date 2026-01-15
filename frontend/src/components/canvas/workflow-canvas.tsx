@@ -1,4 +1,4 @@
-import ReactFlow, { Background, Controls, Panel, useReactFlow } from 'reactflow';
+import ReactFlow, { Background, Controls, Panel, useReactFlow, BackgroundVariant } from 'reactflow';
 import type { Node } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useCanvasStore } from '@/stores/canvas-store';
@@ -129,7 +129,13 @@ export const WorkflowCanvas = () => {
         nodeTypes={memoizedNodeTypes}
         fitView
       >
-        <Background color="currentColor" gap={20} className="opacity-[0.03]" />
+        <Background
+          variant={BackgroundVariant.Dots}
+          gap={24}
+          size={1.5}
+          className="opacity-20"
+          color="currentColor"
+        />
         <Controls className="bg-card! border-border! shadow-xl! rounded-xl! overflow-hidden p-1" />
         <Panel position="top-right">
           <CanvasToolbar />
