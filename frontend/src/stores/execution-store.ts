@@ -20,14 +20,18 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   currentExecution: null,
 
   // Derived selectors - compute from currentExecution.status
-  isExecuting: () => get().currentExecution?.status === 'RUNNING',
+  isExecuting: () => {
+    const status = get().currentExecution?.status;
+    return status === 'RUNNING' || status === 'PAUSED';
+  },
   isTerminal: () => {
     const status = get().currentExecution?.status;
     return status ? TERMINAL_STATUSES.includes(status) : false;
   },
   canStop: () => {
-    const state = get();
-    return state.isExecuting() && !state.isTerminal();
+    const status = get().currentExecution?.status;
+    // Can stop if running or paused (not terminal, not null)
+    return status === 'RUNNING' || status === 'PAUSED';
   },
 
   // Actions
