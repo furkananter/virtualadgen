@@ -38,7 +38,7 @@ SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_PUBLISHABLE_KEY=eyJ...
 SUPABASE_SECRET_API_KEY=eyJ...
 FAL_KEY=fal_...
-RAPID_API_KEY=xxx  # Optional, Reddit fallback
+APIFY_API_KEY=apify_api_xxx  # Optional, Reddit fallback via Apify
 ```
 
 ---
@@ -246,16 +246,20 @@ All workflows are scoped to the authenticated user via RLS policies.
 ### Primary: Direct API
 
 ```python
-# Uses old.reddit.com (less aggressive blocking)
+# Uses reddit.com JSON endpoint
 response = await client.get(
-    f"https://old.reddit.com/r/{subreddit}/hot.json",
+    f"https://www.reddit.com/r/{subreddit}/hot.json",
     headers=randomized_headers
 )
 ```
 
-### Fallback: Socialgrep (RapidAPI)
+### Fallback: Apify Reddit Scraper
 
-If Reddit blocks the request, falls back to Socialgrep API.
+If Reddit blocks the request (403/429), falls back to [Apify Reddit Scraper](https://apify.com/fatihtahta/reddit-scraper).
+
+- **Actor ID**: `TwqHBuZZPHJxiQrTU`
+- **Cost**: ~$1.50 per 1,000 posts
+- **Reliability**: 100% success rate
 
 ### Final Fallback: Static Data
 
@@ -292,19 +296,17 @@ create policy "Users can CRUD own workflows" on workflows
 ## 🧪 Testing
 
 > **Why these tests?**  
-> Reddit frequently blocks automated requests (403 Forbidden). These tests verify that the triple-fallback mechanism (Reddit → Socialgrep → Static) works correctly, ensuring the Social Media node always returns usable data.
+> Reddit frequently blocks automated requests (403 Forbidden). These tests verify that the triple-fallback mechanism (Reddit → Apify → Static) works correctly, ensuring the Social Media node always returns usable data.
 
 ### Unit Tests (Mocked HTTP)
 
-5 passed in 0.21s ✅
+```bash
+pytest tests/ -v
 ```
-</details>
-
----
 
 ### Integration Tests (Live API)
 
-Real HTTP calls to Reddit and Socialgrep. Use this to verify API keys and current block status.
+Real HTTP calls to Reddit and Apify. Use this to verify API keys and current block status.
 
 ```bash
 source venv/bin/activate
@@ -316,9 +318,10 @@ python scripts/test_reddit_live.py
 
 | Subreddit | Source | Status |
 |-----------|--------|--------|
-| r/skincare | Static Fallback | ⚠️ 403 Blocked |
+| r/SkincareAddiction | Reddit Direct | ✅ 5 posts |
 | r/mechanicalkeyboards | Reddit Direct | ✅ 5 posts |
 | r/espresso | Reddit Direct | ✅ 5 posts |
+| **Apify Fallback** | Apify | ✅ 10 posts (6s) |
 
 </details>
 

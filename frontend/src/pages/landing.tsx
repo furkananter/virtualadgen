@@ -28,7 +28,7 @@ export const LandingPage = () => {
 
               <h1 className="text-7xl md:text-[110px] font-bold tracking-tighter leading-[0.9] mb-10 animate-blur-reveal opacity-0 [animation-delay:200ms]">
                 Visualizing <br />
-                <span className="text-muted-foreground/30">Creativity.</span>
+                <span className="text-primary">Creativity.</span>
               </h1>
 
               <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-14 animate-blur-reveal opacity-0 [animation-delay:400ms] leading-relaxed font-medium">
@@ -38,7 +38,7 @@ export const LandingPage = () => {
 
               <div className="flex flex-col sm:flex-row gap-5 justify-center items-center animate-blur-reveal opacity-0 [animation-delay:600ms]">
                 <Link to="/login">
-                  <Button size="lg" className="h-16 px-20 text-lg gap-3 font-bold rounded-2xl shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                  <Button size="lg" className="h-16 px-20 text-lg gap-3 font-bold rounded-2xl shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-transform dark:text-white">
                     Start Building <ArrowRight className="h-6 w-6" />
                   </Button>
                 </Link>

@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     supabase_publishable_key: str
     supabase_secret_api_key: str
     fal_key: str
-    rapid_api_key: str = ""  # Optional, for Reddit fallback
+    apify_api_key: str = ""  # Optional, for Reddit fallback via Apify
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 

@@ -13,7 +13,7 @@ A visual workflow builder for AI-powered ad generation. Create image ads through
 - **Auto-save** workflows to database
 
 ### Image Generation
-- **3 AI models**: FLUX Schnell, FLUX Dev, Stable Diffusion XL (via FAL AI)
+- **4 AI models**: FLUX Schnell, SDXL Lightning, GPT Image 1.5, Nano Banana (via FAL AI)
 - **Configurable parameters**: guidance scale, steps, seed
 - **Multiple outputs**: generate 1-4 images per run
 - **Aspect ratios**: 1:1, 4:5, 9:16
@@ -121,7 +121,7 @@ SUPABASE_URL=https://xxx.supabase.co
 SUPABASE_PUBLISHABLE_KEY=eyJ...
 SUPABASE_SECRET_API_KEY=eyJ...
 FAL_KEY=fal_...
-RAPID_API_KEY=xxx  # Optional, for Reddit fallback
+APIFY_API_KEY=apify_api_xxx  # Optional, for Reddit fallback
 ```
 
 ### Frontend (`frontend/.env`)

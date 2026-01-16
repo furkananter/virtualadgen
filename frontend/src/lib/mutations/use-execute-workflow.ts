@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { workflowApi } from '@/lib/api';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useDebugStore } from '@/stores/debug-store';
@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import type { Execution } from '@/types/database';
 
 export const useExecuteWorkflow = () => {
+  const queryClient = useQueryClient();
   const { setCurrentExecution } = useExecutionStore();
   const { setIsPaused } = useDebugStore();
 
@@ -22,6 +23,9 @@ export const useExecuteWorkflow = () => {
         status: data.status,
       };
       setCurrentExecution(partialExecution as Execution);
+
+      // Force refresh node executions to catch any missed realtime events
+      queryClient.invalidateQueries({ queryKey: ['node-executions', data.execution_id] });
 
       if (data.status === 'PAUSED') {
         setIsPaused(true);

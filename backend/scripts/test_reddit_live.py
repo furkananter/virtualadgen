@@ -72,13 +72,30 @@ async def main() -> None:
     print("=" * 60)
 
     test_subreddits = [
-        "skincare",
+        "SkincareAddiction",
         "mechanicalkeyboards",
         "espresso",
     ]
 
     for subreddit in test_subreddits:
         await test_subreddit(subreddit)
+
+    print("\n" + "=" * 60)
+    print("🧪 Testing Apify Direct Access (Fallback Check)")
+    print("=" * 60)
+
+    # Import private function for testing purposes
+    from app.services.reddit.client import _fetch_from_apify
+
+    try:
+        posts = await _fetch_from_apify("SkincareAddiction", "hot", 3)
+        if posts:
+            print(f"✅ Apify Works! ({len(posts)} posts fetched)")
+            print(f"   Sample Title: {posts[0].get('title', '')[:50]}...")
+        else:
+            print("❌ Apify returned no posts (Check API Token)")
+    except Exception as e:
+        print(f"❌ Apify Failed: {e}")
 
     print("\n" + "=" * 60)
     print("✅ Integration test complete!")

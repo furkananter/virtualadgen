@@ -14,19 +14,17 @@ from .analyzer import extract_insights
 
 logger = logging.getLogger(__name__)
 
-# Using standard reddit.com for better content consistency; fallback to Socialgrep handles any blocking issues
+# Using standard reddit.com for primary API access
 REDDIT_BASE_URL = "https://www.reddit.com"
 
-# Socialgrep RapidAPI fallback
-SOCIALGREP_URL = "https://socialgrep.p.rapidapi.com/search/posts"
+# Apify Reddit Scraper Actor ID (use ID instead of slug for reliability)
+APIFY_ACTOR_ID = "TwqHBuZZPHJxiQrTU"
 
 # Rotate user agents to avoid fingerprinting
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 ]
 
 
@@ -55,7 +53,7 @@ async def fetch_subreddit_posts(
     """
     Fetch posts from a subreddit and extract meaningful insights.
 
-    Tries Reddit API first, falls back to Socialgrep (RapidAPI), then static data.
+    Tries Reddit API first, falls back to Apify, then static data.
 
     Args:
         subreddit: Name of the subreddit.
@@ -75,10 +73,10 @@ async def fetch_subreddit_posts(
     # Try Reddit direct API first
     posts = await _fetch_from_reddit(validated_subreddit, sort, limit)
 
-    # Fallback to Socialgrep if Reddit fails
-    if not posts and settings.rapid_api_key:
-        logger.info(f"Trying Socialgrep fallback for r/{validated_subreddit}")
-        posts = await _fetch_from_socialgrep(validated_subreddit, limit)
+    # Fallback to Apify if Reddit fails
+    if not posts and settings.apify_api_key:
+        logger.info(f"Trying Apify fallback for r/{validated_subreddit}")
+        posts = await _fetch_from_apify(validated_subreddit, sort, limit)
 
     # Return insights or static fallback
     if posts:
@@ -111,31 +109,62 @@ async def _fetch_from_reddit(
         return []
 
 
-async def _fetch_from_socialgrep(subreddit: str, limit: int) -> list[dict[str, Any]]:
-    """Fetch posts from Socialgrep via RapidAPI as fallback."""
+async def _fetch_from_apify(
+    subreddit: str, sort: str, limit: int
+) -> list[dict[str, Any]]:
+    """Fetch posts from Apify Reddit Scraper as fallback."""
     try:
-        headers = {
-            "X-RapidAPI-Key": settings.rapid_api_key,
-            "X-RapidAPI-Host": "socialgrep.p.rapidapi.com",
-        }
-        params = {
-            "query": f"/r/{subreddit}",
-            "size": str(limit),
-        }
+        import asyncio
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                SOCIALGREP_URL,
-                headers=headers,
-                params=params,
-            )
-            response.raise_for_status()
-            data = response.json()
+        # Define blocking operation to run in thread
+        def _run_apify_sync() -> list[dict[str, Any]]:
+            from apify_client import ApifyClient
 
-        return _parse_socialgrep_posts(data)
+            client = ApifyClient(settings.apify_api_key)
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
-        logger.warning(f"Socialgrep API failed for r/{subreddit}: {e}")
+            # Map sort to Apify's subredditSort parameter
+            valid_sorts = ["relevance", "hot", "top", "new", "comments", "rising"]
+            if sort not in valid_sorts:
+                logger.debug(f"Unknown sort '{sort}' for Apify, defaulting to 'hot'")
+            apify_sort = sort if sort in valid_sorts else "hot"
+
+            run_input = {
+                "subredditName": subreddit,
+                "subredditSort": apify_sort,
+                "subredditTimeframe": "week",
+                "maxPosts": max(limit, 10),  # Apify requires minimum 10
+                "scrapeComments": False,
+                "includeNsfw": False,
+            }
+
+            # Run the actor (blocking)
+            run = client.actor(APIFY_ACTOR_ID).call(run_input=run_input)
+
+            # Fetch results from the dataset (blocking iteration)
+            posts = []
+            for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+                if item.get("kind") == "post":
+                    posts.append(
+                        {
+                            "title": item.get("title", ""),
+                            "score": item.get("score", 0),
+                            "url": item.get("url", ""),
+                            "num_comments": item.get("num_comments", 0),
+                        }
+                    )
+                if len(posts) >= limit:
+                    break
+
+            return posts
+
+        # Offload blocking I/O to thread pool
+        posts = await asyncio.to_thread(_run_apify_sync)
+
+        logger.info(f"Apify fetched {len(posts)} posts for r/{subreddit}")
+        return posts
+
+    except Exception as e:
+        logger.warning(f"Apify fallback failed for r/{subreddit}: {e}")
         return []
 
 
@@ -150,21 +179,6 @@ def _parse_reddit_posts(data: dict[str, Any]) -> list[dict[str, Any]]:
                 "score": post_data.get("score", 0),
                 "url": post_data.get("url", ""),
                 "num_comments": post_data.get("num_comments", 0),
-            }
-        )
-    return posts
-
-
-def _parse_socialgrep_posts(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """Parse Socialgrep API response into post list."""
-    posts = []
-    for item in data.get("data", []):
-        posts.append(
-            {
-                "title": item.get("title", ""),
-                "score": item.get("score", 0),
-                "url": item.get("url", ""),
-                "num_comments": item.get("num_comments", 0),
             }
         )
     return posts

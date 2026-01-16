@@ -64,11 +64,11 @@ ASPECT_CONVERSIONS: dict[AspectFormat, dict[str, str]] = {
     },
     "snake_case": {
         "1:1": "square",
-        "4:5": "portrait_4_5",
-        "9:16": "portrait_9_16",
+        "4:5": "portrait_4_3",  # Closest match
+        "9:16": "portrait_16_9",
         "16:9": "landscape_16_9",
         "4:3": "landscape_4_3",
-        "3:4": "portrait_3_4",
+        "3:4": "portrait_4_3",
     },
     "dimensions": {
         "1:1": "1024x1024",
