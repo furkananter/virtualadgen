@@ -1,73 +1,228 @@
-# React + TypeScript + Vite
+# Frontend — VisualAdGen
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript application for the visual workflow builder.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Category | Technology |
+|----------|------------|
+| Framework | React 18 + Vite |
+| Language | TypeScript (strict mode) |
+| Styling | Tailwind CSS + shadcn/ui |
+| State | Zustand (local) + TanStack Query (server) |
+| Canvas | React Flow |
+| Auth | Supabase Auth |
+| Realtime | Supabase Realtime |
 
-## React Compiler
+---
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+## 🚀 Getting Started
 
-## Expanding the ESLint configuration
+```bash
+# Install dependencies
+pnpm install
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+# Start dev server
+pnpm dev
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+# Type check
+pnpm tsc --noEmit
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Build for production
+pnpm build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create `.env` file:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_BACKEND_URL=http://localhost:8000
 ```
+
+---
+
+## 📁 Directory Structure
+
+```
+src/
+├── components/
+│   ├── nodes/              # React Flow node components
+│   │   ├── base-node.tsx   # Shared node wrapper (handles, status, debug)
+│   │   ├── text-input-node.tsx
+│   │   ├── image-input-node.tsx
+│   │   ├── social-media-node.tsx
+│   │   ├── prompt-node.tsx
+│   │   ├── image-model-node.tsx
+│   │   └── output-node.tsx
+│   │
+│   ├── config-panels/      # Node configuration sidebars
+│   │   ├── index.tsx       # Panel router by node type
+│   │   ├── text-input-config.tsx
+│   │   ├── image-model-config.tsx
+│   │   ├── output-config.tsx
+│   │   └── ...
+│   │
+│   ├── canvas/             # Workflow canvas components
+│   │   ├── workflow-canvas.tsx  # Main React Flow canvas
+│   │   ├── canvas-toolbar.tsx   # Run/Save/Debug buttons
+│   │   ├── node-palette.tsx     # Draggable node list
+│   │   └── node-context-menu.tsx
+│   │
+│   ├── debug/              # Debugging components
+│   │   └── node-inspector.tsx   # View node input/output
+│   │
+│   ├── history/            # Execution history
+│   │   ├── execution-card.tsx
+│   │   └── execution-gallery.tsx
+│   │
+│   ├── layout/             # Page layout components
+│   ├── auth/               # Auth components
+│   └── ui/                 # shadcn/ui primitives
+│
+├── pages/
+│   ├── landing.tsx         # Marketing landing page
+│   ├── login.tsx           # Auth page
+│   ├── workflows.tsx       # Workflow list
+│   ├── workflow-editor.tsx # Canvas editor
+│   └── workflow-history.tsx
+│
+├── stores/                 # Zustand stores
+│   ├── canvas-store.ts     # Nodes, edges, selection
+│   ├── execution-store.ts  # Current execution state
+│   ├── debug-store.ts      # Debug mode, node executions
+│   └── auth-store.ts       # User session
+│
+├── lib/
+│   ├── api.ts              # Axios instance for backend
+│   ├── mutations/          # TanStack Query mutations
+│   │   ├── use-execute-workflow.ts
+│   │   ├── use-save-workflow.ts
+│   │   ├── use-step-execution.ts
+│   │   └── ...
+│   ├── queries/            # TanStack Query queries
+│   │   ├── use-workflow-query.ts
+│   │   ├── use-workflows-query.ts
+│   │   └── use-executions-query.ts
+│   └── supabase/           # Direct Supabase operations
+│
+├── hooks/
+│   └── use-realtime.ts     # Supabase Realtime subscription
+│
+├── types/
+│   ├── database.ts         # DB entity types
+│   ├── nodes.ts            # Node data types
+│   └── api.ts              # API response types
+│
+└── config/
+    └── supabase.ts         # Supabase client init
+```
+
+---
+
+## 🧩 Component Architecture
+
+### Node System
+
+All nodes extend `BaseNode` which provides:
+- Connection handles (left = input, right = output)
+- Status indicator (pending/running/completed/failed)
+- Breakpoint badge
+- Debug popover (node ID, raw output)
+- Context menu (delete, toggle breakpoint)
+
+```tsx
+// Example: Creating a new node type
+export const MyNode = (props: NodeProps<NodeData>) => (
+  <BaseNode title="My Node" icon={<Icon />} {...props}>
+    {/* Node-specific content */}
+  </BaseNode>
+);
+```
+
+### State Management
+
+| Store | Purpose | Persistence |
+|-------|---------|-------------|
+| `canvasStore` | Nodes, edges, selection | Synced to DB on save |
+| `executionStore` | Current execution ID/status | Memory only |
+| `debugStore` | Debug mode, node execution data | Memory only |
+| `authStore` | User session | Supabase handles |
+
+### Data Flow
+
+```
+User Action
+    │
+    ▼
+Zustand Store (local state)
+    │
+    ▼
+TanStack Mutation (API call)
+    │
+    ▼
+Backend Response
+    │
+    ▼
+setQueryData (direct cache update)
+    │
+    ▼
+UI Re-render
+```
+
+> **Note**: We use `setQueryData` instead of `invalidateQueries` for immediate cache updates without refetching.
+
+---
+
+## 🔌 Realtime Updates
+
+During workflow execution, the app subscribes to Supabase Realtime:
+
+```ts
+// use-realtime.ts
+supabase.channel(`execution:${executionId}`)
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'node_executions',
+    filter: `execution_id=eq.${executionId}`
+  }, handleChange)
+  .subscribe();
+```
+
+This enables:
+- Live status updates per node
+- Immediate breakpoint pause detection
+- Real-time output data inspection
+
+---
+
+## 🎨 Styling Conventions
+
+- **Design system**: shadcn/ui components with custom theme
+- **Dark mode**: Fully supported via CSS variables
+- **Spacing**: Tailwind spacing scale (`p-4`, `gap-2`, etc.)
+- **Animations**: `animate-in`, `fade-in`, `slide-in-from-*` utilities
+- **Glassmorphism**: `backdrop-blur-xl`, `bg-card/40`
+
+### Color Tokens
+
+```css
+--primary: Brand accent color
+--muted: Secondary backgrounds
+--destructive: Error states
+--border: Subtle dividers
+```
+
+---
+
+## 🧪 Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server (port 5173) |
+| `pnpm build` | Production build |
+| `pnpm preview` | Preview production build |
+| `pnpm tsc --noEmit` | Type check without emit |

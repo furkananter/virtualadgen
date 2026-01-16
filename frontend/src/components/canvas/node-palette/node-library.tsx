@@ -1,4 +1,5 @@
 import type { DragEvent } from 'react';
+import { GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { NodeType } from '@/types/database';
 import { NODE_CONFIGS } from '../node-configs';
@@ -47,7 +48,12 @@ export const NodeLibrary = ({
                     >
                         <Icon className="h-4 w-4" />
                     </div>
-                    {!sidebarCollapsed && <span className="text-xs font-semibold">{node.label}</span>}
+                    {!sidebarCollapsed && (
+                        <>
+                            <span className="text-xs font-semibold flex-1">{node.label}</span>
+                            <GripVertical className="h-3.5 w-3.5 text-muted-foreground/0 group-hover:text-muted-foreground/40 transition-all duration-200" />
+                        </>
+                    )}
                 </div>
             );
         })}

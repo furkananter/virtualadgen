@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 
 export const LoadingScreen = ({ message = 'Processing' }: { message?: string }) => {
     return (
-        <div className="fixed inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-md z-[9999]">
+        <div className="fixed inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-md z-9999">
             <div className="relative flex flex-col items-center gap-6">
                 {/* Simple & Premium Spinner */}
                 <div className="relative w-12 h-12">

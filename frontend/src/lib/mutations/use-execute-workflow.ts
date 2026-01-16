@@ -2,6 +2,10 @@ import { useMutation } from '@tanstack/react-query';
 import { workflowApi } from '@/lib/api';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useDebugStore } from '@/stores/debug-store';
+import { toast } from 'sonner';
+import type { Execution, ExecutionStatus } from '@/types/database';
+
+const TERMINAL_STATUSES: ExecutionStatus[] = ['COMPLETED', 'FAILED', 'CANCELLED'];
 
 export const useExecuteWorkflow = () => {
   const { setCurrentExecution, setIsExecuting } = useExecutionStore();
@@ -14,20 +18,24 @@ export const useExecuteWorkflow = () => {
       return response;
     },
     onSuccess: (data) => {
-      // @ts-expect-error - partial execution shape for optimistic update
-      setCurrentExecution({ id: data.execution_id, status: data.status });
+      const partialExecution: Partial<Execution> & Pick<Execution, 'id' | 'status'> = {
+        id: data.execution_id,
+        status: data.status,
+      };
+      setCurrentExecution(partialExecution as Execution);
 
       if (data.status === 'PAUSED') {
         setIsExecuting(false);
         setIsPaused(true);
-      } else if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(data.status)) {
+      } else if (TERMINAL_STATUSES.includes(data.status)) {
         setIsExecuting(false);
         setIsPaused(false);
       }
     },
-    onError: () => {
+    onError: (error) => {
       setIsExecuting(false);
       setIsPaused(false);
+      toast.error(`Workflow execution failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   });
 };

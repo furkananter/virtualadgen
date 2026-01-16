@@ -5,11 +5,19 @@ from typing import Any
 
 import fal_client
 
-from app.config import settings
 from app.utils.cost_calculator import calculate_cost
 
+_fal_initialized = False
 
-os.environ["FAL_KEY"] = settings.fal_key
+
+def _ensure_fal_initialized() -> None:
+    """Lazily initialize FAL API key on first use."""
+    global _fal_initialized
+    if not _fal_initialized:
+        from app.config import settings
+
+        os.environ["FAL_KEY"] = settings.fal_key
+        _fal_initialized = True
 
 
 async def generate_images(
@@ -30,6 +38,8 @@ async def generate_images(
     Returns:
         Dictionary containing image_urls and cost.
     """
+    _ensure_fal_initialized()
+
     params = parameters or {}
     params["prompt"] = prompt
     params["num_images"] = num_images
