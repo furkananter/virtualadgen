@@ -16,7 +16,7 @@ export const WorkflowEditorPage = () => {
   const { id } = useParams<{ id: string }>();
   const { data: workflow, isLoading, error } = useWorkflowQuery(id);
   const { setCurrentWorkflow } = useWorkflowStore();
-  const { setNodes, setEdges, selectedNodeId } = useCanvasStore();
+  const { setNodes, setEdges, selectedNodeId, sidebarCollapsed } = useCanvasStore();
 
   useEffect(() => {
     if (workflow) {
@@ -48,7 +48,10 @@ export const WorkflowEditorPage = () => {
       <main className="flex-1 relative flex overflow-hidden">
         <ReactFlowProvider>
           {/* Left Sidebar */}
-          <div className="w-64 shrink-0 h-full">
+          <div className={cn(
+            "shrink-0 h-full transition-all duration-300 ease-in-out relative z-40",
+            sidebarCollapsed ? "w-20" : "w-64"
+          )}>
             <NodePalette />
           </div>
 

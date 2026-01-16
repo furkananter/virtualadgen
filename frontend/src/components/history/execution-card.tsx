@@ -13,7 +13,7 @@ export const ExecutionCard = ({ execution }: ExecutionCardProps) => {
     const imageUrls = execution.generations?.flatMap((g: any) => g.image_urls) || [];
 
     return (
-        <Card className="group overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 shadow-sm hover:shadow-xl bg-card/30">
+        <Card className="group overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 bg-card/30">
             <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-4">
                     <div className="flex flex-col">

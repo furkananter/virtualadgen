@@ -9,12 +9,13 @@ import { useStepExecution } from '@/lib/mutations/use-step-execution';
 import { useCancelExecution } from '@/lib/mutations/use-cancel-execution';
 import { useDebugStore } from '@/stores/debug-store';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 export const CanvasToolbar = () => {
   const { currentWorkflow } = useWorkflowStore();
   const { nodes, edges } = useCanvasStore();
   const { isExecuting } = useExecutionStore();
-  const { isPaused, clearNodeExecutions } = useDebugStore();
+  const { isPaused, clearNodeExecutions, debugMode, toggleDebugMode } = useDebugStore();
 
   const executeWorkflow = useExecuteWorkflow();
   const saveWorkflow = useSaveWorkflow();
@@ -68,9 +69,13 @@ export const CanvasToolbar = () => {
   };
 
   const hasNodes = nodes.length > 0;
+  const handleToggleDebug = () => {
+    toggleDebugMode();
+    toast.info(debugMode ? 'Debug mode deactivated' : 'Debug mode activated');
+  };
 
   return (
-    <div className="flex items-center gap-2 bg-background/80 backdrop-blur p-1 rounded-xl border shadow-xl">
+    <div className="flex items-center gap-2 bg-background/80 backdrop-blur p-1 rounded-xl border shadow-xl pointer-events-auto">
       {!isPaused && !isExecuting && (
         <Button
           variant="ghost"
@@ -112,8 +117,16 @@ export const CanvasToolbar = () => {
 
       <div className="w-px h-4 bg-border mx-1" />
 
-      <Button variant="ghost" size="sm" className="h-8 gap-2 font-bold opacity-60 hover:opacity-100 transition-opacity">
-        <Bug className="h-4 w-4" />
+      <Button
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "h-8 gap-2 font-bold transition-all",
+          debugMode ? "text-primary bg-primary/10 opacity-100 shadow-sm" : "opacity-60 hover:opacity-100"
+        )}
+        onClick={handleToggleDebug}
+      >
+        <Bug className={cn("h-4 w-4", debugMode && "animate-pulse")} />
         Debug
       </Button>
 

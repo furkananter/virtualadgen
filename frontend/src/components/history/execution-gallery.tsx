@@ -15,7 +15,7 @@ export const ExecutionGallery = ({ imageUrls }: ExecutionGalleryProps) => {
     }
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {imageUrls.map((url, i) => (
                 <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-border/50 bg-muted/40 hover:border-primary/20 transition-all">
                     <img

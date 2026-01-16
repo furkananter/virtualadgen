@@ -104,9 +104,7 @@ class WorkflowEngine:
                 "current_node_id": None,
             }
 
-        await update_execution_status(self.client, execution_id, ExecutionStatus.RUNNING)
-
-        return await self._run_execution(
+        return await self._step_single_node(
             execution_id=execution_id,
             nodes=nodes,
             edges=edges,
@@ -139,6 +137,7 @@ class WorkflowEngine:
         edges: list[dict],
         sorted_node_ids: list[str],
         start_index: int = 0,
+        pause_on_breakpoints: bool = True,
     ) -> dict[str, Any]:
         """
         Run the execution loop.
@@ -149,6 +148,7 @@ class WorkflowEngine:
             edges: List of edge records.
             sorted_node_ids: Topologically sorted node IDs.
             start_index: Index to start execution from.
+            pause_on_breakpoints: Whether to pause before breakpoint nodes.
 
         Returns:
             Execution result with status.
@@ -171,7 +171,7 @@ class WorkflowEngine:
                 node = node_map[node_id]
                 current_node_id = node_id
 
-                if node.get("has_breakpoint", False) and idx > start_index:
+                if pause_on_breakpoints and node.get("has_breakpoint", False):
                     await update_node_execution(
                         self.client, execution_id, node_id, NodeExecutionStatus.PAUSED
                     )
@@ -191,10 +191,16 @@ class WorkflowEngine:
                     NodeExecutionStatus.RUNNING, input_data=inputs
                 )
 
+                context = {"execution_id": execution_id}
+                if node.get("type") == NodeType.IMAGE_MODEL.value:
+                    output_config = self._get_output_config(node_id, nodes, edges)
+                    if output_config:
+                        context["output_config"] = output_config
+
                 output = await self._execute_node(
                     node=node,
                     inputs=inputs,
-                    context={"execution_id": execution_id},
+                    context=context,
                 )
                 outputs[node_id] = output
 
@@ -226,6 +232,98 @@ class WorkflowEngine:
                 self.client, execution_id, ExecutionStatus.FAILED, error_message=error_msg
             )
             raise
+
+    async def _step_single_node(
+        self,
+        execution_id: str,
+        nodes: list[dict],
+        edges: list[dict],
+        sorted_node_ids: list[str],
+        start_index: int,
+    ) -> dict[str, Any]:
+        """
+        Execute a single node and pause at the next node.
+
+        Args:
+            execution_id: UUID of the execution.
+            nodes: List of node records.
+            edges: List of edge records.
+            sorted_node_ids: Topologically sorted node IDs.
+            start_index: Index of the paused node to execute.
+
+        Returns:
+            Execution result with updated status.
+        """
+        node_map = {node["id"]: node for node in nodes}
+        outputs: dict[str, dict[str, Any]] = {}
+        total_cost = 0.0
+
+        node_executions = await get_node_executions(self.client, execution_id)
+        for ne in node_executions:
+            if ne["output_data"]:
+                outputs[ne["node_id"]] = ne["output_data"]
+                if "cost" in ne["output_data"]:
+                    total_cost += ne["output_data"]["cost"]
+
+        node_id = sorted_node_ids[start_index]
+        node = node_map[node_id]
+
+        await update_execution_status(self.client, execution_id, ExecutionStatus.RUNNING)
+
+        inputs = self._gather_inputs(node_id, edges, outputs)
+        await update_node_execution(
+            self.client, execution_id, node_id,
+            NodeExecutionStatus.RUNNING, input_data=inputs
+        )
+
+        context = {"execution_id": execution_id}
+        if node.get("type") == NodeType.IMAGE_MODEL.value:
+            output_config = self._get_output_config(node_id, nodes, edges)
+            if output_config:
+                context["output_config"] = output_config
+
+        output = await self._execute_node(
+            node=node,
+            inputs=inputs,
+            context=context,
+        )
+        outputs[node_id] = output
+
+        if "cost" in output:
+            total_cost += output["cost"]
+
+        await update_node_execution(
+            self.client, execution_id, node_id,
+            NodeExecutionStatus.COMPLETED, output_data=output
+        )
+
+        next_index = start_index + 1
+        if next_index >= len(sorted_node_ids):
+            await update_execution_status(
+                self.client,
+                execution_id,
+                ExecutionStatus.COMPLETED,
+                total_cost=total_cost,
+            )
+            return {
+                "execution_id": execution_id,
+                "status": ExecutionStatus.COMPLETED,
+                "current_node_id": None,
+            }
+
+        next_node_id = sorted_node_ids[next_index]
+        await update_node_execution(
+            self.client, execution_id, next_node_id, NodeExecutionStatus.PAUSED
+        )
+        await update_execution_status(
+            self.client, execution_id, ExecutionStatus.PAUSED
+        )
+
+        return {
+            "execution_id": execution_id,
+            "status": ExecutionStatus.PAUSED,
+            "current_node_id": next_node_id,
+        }
 
     def _gather_inputs(
         self,
@@ -300,4 +398,30 @@ class WorkflowEngine:
         for idx, node_id in enumerate(sorted_node_ids):
             if node_id in paused_nodes:
                 return idx
+        return None
+
+    def _get_output_config(
+        self,
+        image_node_id: str,
+        nodes: list[dict],
+        edges: list[dict],
+    ) -> dict[str, Any] | None:
+        """
+        Find output node configuration connected to an image model node.
+
+        Args:
+            image_node_id: Image model node ID.
+            nodes: List of node records.
+            edges: List of edge records.
+
+        Returns:
+            Output node config if found, otherwise None.
+        """
+        node_map = {node["id"]: node for node in nodes}
+        for edge in edges:
+            if edge["source_node_id"] == image_node_id:
+                target_id = edge["target_node_id"]
+                target_node = node_map.get(target_id)
+                if target_node and target_node.get("type") == NodeType.OUTPUT.value:
+                    return target_node.get("config", {})
         return None

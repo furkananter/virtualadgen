@@ -14,13 +14,13 @@ function Card({ className, children, ...props }: React.ComponentProps<"div">) {
         cornerRadius={20}
         cornerSmoothing={1}
         className={cn(
-          "absolute inset-0 bg-card dark:bg-muted transition-all duration-200",
-          "shadow-[inset_0_0_0_1px_var(--border)] dark:shadow-none",
-          "group-data-[selected=true]:shadow-[inset_0_0_0_2px_var(--primary)]",
+          "absolute inset-0 bg-card dark:bg-muted/50 transition-all duration-300",
+          "shadow-[inset_0_0_0_1px_var(--border)]",
           "group-data-[status=RUNNING]:shadow-[inset_0_0_0_2px_#10b981]",
           "group-data-[status=COMPLETED]:shadow-[inset_0_0_0_2px_#10b981]",
           "group-data-[status=FAILED]:shadow-[inset_0_0_0_2px_#ef4444]",
-          "group-data-[status=PAUSED]:shadow-[inset_0_0_0_2px_#f59e0b]"
+          "group-data-[status=PAUSED]:shadow-[inset_0_0_0_2px_#f59e0b]",
+          "group-data-[selected=true]:shadow-[inset_0_0_0_2px_var(--primary)] group-data-[selected=true]:bg-primary/5"
         )}
       />
       <div data-slot="card" className="relative flex flex-col h-full z-10">

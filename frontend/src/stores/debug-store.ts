@@ -6,6 +6,8 @@ interface DebugState {
   isPaused: boolean;
   setNodeExecution: (nodeId: string, execution: NodeExecution) => void;
   setIsPaused: (value: boolean) => void;
+  debugMode: boolean;
+  toggleDebugMode: () => void;
   clearNodeExecutions: () => void;
 }
 
@@ -18,5 +20,7 @@ export const useDebugStore = create<DebugState>((set, get) => ({
     set({ nodeExecutions: newMap });
   },
   setIsPaused: (value) => set({ isPaused: value }),
+  debugMode: false,
+  toggleDebugMode: () => set((state) => ({ debugMode: !state.debugMode })),
   clearNodeExecutions: () => set({ nodeExecutions: new Map(), isPaused: false }),
 }));

@@ -24,6 +24,8 @@ interface CanvasState {
   updateNode: (id: string, data: Partial<NodeData>) => void;
   deleteNode: (id: string) => void;
   setSelectedNodeId: (id: string | null) => void;
+  sidebarCollapsed: boolean;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
@@ -62,4 +64,6 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
     });
   },
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
+  sidebarCollapsed: false,
+  setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 }));
