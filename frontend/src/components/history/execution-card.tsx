@@ -10,7 +10,7 @@ interface ExecutionCardProps {
 }
 
 export const ExecutionCard = ({ execution }: ExecutionCardProps) => {
-    const imageUrls = execution.generations?.flatMap((g) => g.image_urls) || [];
+    const imageUrls = execution.generations?.flatMap((g) => g.image_urls ?? []) ?? [];
 
     return (
         <Card className="group overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 bg-card/30">

@@ -11,15 +11,20 @@ export const useStepExecution = () => {
 
     return useMutation({
         mutationFn: async () => {
-            if (!currentExecution?.id) throw new Error('No active execution to step');
+            // Capture snapshot before async operation
+            const exec = currentExecution;
+            const execId = exec?.id;
+            if (!execId) throw new Error('No active execution to step');
+
             setIsExecuting(true);
-            const response = await workflowApi.step(currentExecution.id);
-            return response;
+            const response = await workflowApi.step(execId);
+            // Return both response and captured snapshot
+            return { data: response, exec, execId };
         },
-        onSuccess: (data) => {
-            // @ts-expect-error - partial execution update
-            setCurrentExecution({ ...currentExecution, status: data.status });
-            queryClient.invalidateQueries({ queryKey: ['node-executions', currentExecution?.id] });
+        onSuccess: ({ data, exec, execId }) => {
+            // Use captured snapshot for consistent state updates
+            setCurrentExecution({ ...exec, status: data.status });
+            queryClient.invalidateQueries({ queryKey: ['node-executions', execId] });
 
             if (data.status === 'FAILED') {
                 toast.error(data.error_message || 'Workflow execution failed');
@@ -27,7 +32,6 @@ export const useStepExecution = () => {
                 setIsPaused(false);
                 return;
             }
-
             if (data.status === 'COMPLETED') {
                 toast.success('Workflow execution completed');
                 setIsExecuting(false);
@@ -44,3 +48,4 @@ export const useStepExecution = () => {
         }
     });
 };
+

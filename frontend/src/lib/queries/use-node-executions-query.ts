@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/config/supabase';
+import { getNodeExecutionsByExecutionId } from '@/lib/supabase';
 import { useDebugStore } from '@/stores/debug-store';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useEffect } from 'react';
@@ -11,16 +11,9 @@ export const useNodeExecutionsQuery = (executionId: string | null) => {
 
     const query = useQuery({
         queryKey: ['node-executions', executionId],
-        queryFn: async () => {
+        queryFn: async (): Promise<NodeExecution[]> => {
             if (!executionId) return [];
-
-            const { data, error } = await supabase
-                .from('node_executions')
-                .select('*')
-                .eq('execution_id', executionId);
-
-            if (error) throw error;
-            return data as NodeExecution[];
+            return await getNodeExecutionsByExecutionId(executionId);
         },
         enabled: !!executionId,
         refetchInterval: isExecuting ? 500 : false,

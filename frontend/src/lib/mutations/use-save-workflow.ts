@@ -1,5 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/config/supabase';
+import {
+    deleteEdgesByWorkflowId,
+    deleteNodesByWorkflowId,
+    insertNodes,
+    insertEdges,
+    touchWorkflow,
+    type DbNode,
+    type DbEdge,
+} from '@/lib/supabase';
 import type { Node, Edge } from 'reactflow';
 import { toast } from 'sonner';
 import type { Workflow } from '@/types/database';
@@ -27,7 +35,7 @@ export const useSaveWorkflow = () => {
         mutationFn: async ({ workflowId, nodes, edges }: SaveWorkflowParams) => {
             const idMap: Record<string, string> = {};
 
-            const sanitizedNodes = nodes.map(node => {
+            const sanitizedNodes: DbNode[] = nodes.map(node => {
                 let id = node.id;
                 if (!isUUID(id)) {
                     const newId = crypto.randomUUID();
@@ -37,7 +45,7 @@ export const useSaveWorkflow = () => {
                 return {
                     id,
                     workflow_id: workflowId,
-                    type: node.type,
+                    type: node.type || 'unknown',
                     name: node.data.label || 'Untitled Node',
                     config: node.data.config || {},
                     position_x: Math.round(node.position.x),
@@ -46,7 +54,7 @@ export const useSaveWorkflow = () => {
                 };
             });
 
-            const sanitizedEdges = edges.map(edge => {
+            const sanitizedEdges: DbEdge[] = edges.map(edge => {
                 let id = edge.id;
                 if (!isUUID(id)) {
                     id = crypto.randomUUID();
@@ -61,44 +69,21 @@ export const useSaveWorkflow = () => {
                 };
             });
 
-            const { error: deleteEdgesError } = await supabase
-                .from('edges')
-                .delete()
-                .eq('workflow_id', workflowId);
+            // Delete existing edges then nodes (order matters for FK constraints)
+            await deleteEdgesByWorkflowId(workflowId);
+            await deleteNodesByWorkflowId(workflowId);
 
-            if (deleteEdgesError) throw deleteEdgesError;
+            // Insert new nodes then edges
+            await insertNodes(sanitizedNodes);
+            await insertEdges(sanitizedEdges);
 
-            const { error: deleteNodesError } = await supabase
-                .from('nodes')
-                .delete()
-                .eq('workflow_id', workflowId);
+            // Update workflow timestamp
+            await touchWorkflow(workflowId);
 
-            if (deleteNodesError) throw deleteNodesError;
-
-            if (sanitizedNodes.length > 0) {
-                const { error: nodesError } = await supabase
-                    .from('nodes')
-                    .insert(sanitizedNodes);
-                if (nodesError) throw nodesError;
-            }
-
-            if (sanitizedEdges.length > 0) {
-                const { error: edgesError } = await supabase
-                    .from('edges')
-                    .insert(sanitizedEdges);
-                if (edgesError) throw edgesError;
-            }
-
-            const { error: workflowError } = await supabase
-                .from('workflows')
-                .update({ updated_at: new Date().toISOString() })
-                .eq('id', workflowId);
-
-            if (workflowError) throw workflowError;
-
+            // Map back to React Flow format
             const finalNodes: Node[] = sanitizedNodes.map(sn => ({
                 id: sn.id,
-                type: sn.type as string,
+                type: sn.type,
                 position: { x: sn.position_x, y: sn.position_y },
                 data: { label: sn.name, config: sn.config, has_breakpoint: sn.has_breakpoint }
             }));

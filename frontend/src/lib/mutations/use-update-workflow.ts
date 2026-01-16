@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/config/supabase';
+import { updateWorkflow } from '@/lib/supabase';
 import type { Workflow } from '@/types/database';
 
 interface UpdateWorkflowParams {
@@ -12,15 +12,7 @@ export const useUpdateWorkflow = () => {
 
   return useMutation({
     mutationFn: async ({ workflowId, updates }: UpdateWorkflowParams) => {
-      const { data, error } = await supabase
-        .from('workflows')
-        .update(updates)
-        .eq('id', workflowId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as Workflow;
+      return await updateWorkflow(workflowId, updates);
     },
     onSuccess: (data) => {
       // Update individual workflow cache

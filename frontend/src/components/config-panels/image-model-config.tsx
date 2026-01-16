@@ -75,7 +75,10 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
               step="0.1"
               className="bg-muted/20 dark:bg-white/5 border-border/80 dark:border-white/10 focus:bg-muted/30 focus:border-primary/40 h-10 px-3 text-sm rounded-xl shadow-sm"
               value={parameters.guidance_scale ?? 7.5}
-              onChange={(e) => handleParamChange('guidance_scale', parseFloat(e.target.value))}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value);
+                handleParamChange('guidance_scale', isNaN(v) ? undefined : v);
+              }}
             />
           </div>
           <div className="space-y-2">
@@ -84,7 +87,10 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
               type="number"
               className="bg-muted/20 dark:bg-white/5 border-border/80 dark:border-white/10 focus:bg-muted/30 focus:border-primary/40 h-10 px-3 text-sm rounded-xl shadow-sm"
               value={parameters.num_inference_steps ?? 20}
-              onChange={(e) => handleParamChange('num_inference_steps', parseInt(e.target.value))}
+              onChange={(e) => {
+                const v = parseInt(e.target.value, 10);
+                handleParamChange('num_inference_steps', isNaN(v) ? undefined : v);
+              }}
             />
           </div>
         </div>

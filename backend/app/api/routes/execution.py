@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import traceback
 from fastapi import APIRouter, HTTPException, status
 
 from app.api.deps import CurrentUser
@@ -12,9 +13,27 @@ from app.models.schemas import (
 )
 from app.models.enums import ExecutionStatus
 from app.services.workflow_engine import WorkflowEngine
+from app.services.supabase import get_supabase_client, update_execution_status
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["execution"])
+
+
+async def _update_execution_status_safe(
+    execution_id: str,
+    status: ExecutionStatus,
+    error_message: str | None = None,
+) -> None:
+    """Safely update execution status, suppressing any errors."""
+    try:
+        client = get_supabase_client()
+        await update_execution_status(
+            client, execution_id, status, error_message=error_message
+        )
+    except Exception as e:
+        logger.error(
+            f"Failed to update execution {execution_id} status to {status}: {e}"
+        )
 
 
 def _handle_task_exception(task: asyncio.Task, execution_id: str) -> None:
@@ -22,9 +41,18 @@ def _handle_task_exception(task: asyncio.Task, execution_id: str) -> None:
     try:
         exc = task.exception()
         if exc:
+            error_msg = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
             logger.error(f"Background execution {execution_id} failed: {exc}")
+            asyncio.create_task(
+                _update_execution_status_safe(
+                    execution_id, ExecutionStatus.FAILED, error_msg
+                )
+            )
     except asyncio.CancelledError:
         logger.warning(f"Background execution {execution_id} was cancelled")
+        asyncio.create_task(
+            _update_execution_status_safe(execution_id, ExecutionStatus.CANCELLED)
+        )
 
 
 @router.post(
@@ -50,7 +78,7 @@ async def execute_workflow(
         prepared = await engine.prepare_execution(workflow_id, current_user["id"])
 
         task = asyncio.create_task(
-            engine.run_execution_background(
+            engine._run_execution_background(
                 prepared["execution_id"],
                 prepared["nodes"],
                 prepared["edges"],
@@ -139,9 +167,16 @@ async def cancel_execution(
         engine = WorkflowEngine()
         result = await engine.cancel_execution(execution_id, current_user["id"])
 
+        result_status = result.get("status", ExecutionStatus.CANCELLED)
+        if isinstance(result_status, str):
+            try:
+                result_status = ExecutionStatus(result_status)
+            except ValueError:
+                result_status = ExecutionStatus.CANCELLED
+
         return ExecutionCancelResponse(
             execution_id=result["execution_id"],
-            status=ExecutionStatus.CANCELLED,
+            status=result_status,
         )
     except ValueError as e:
         raise HTTPException(

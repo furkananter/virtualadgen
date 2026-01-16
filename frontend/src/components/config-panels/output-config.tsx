@@ -48,7 +48,11 @@ export const OutputConfig = ({ nodeId, config }: OutputConfigProps) => {
           max={4}
           className="bg-muted/20 dark:bg-white/5 border-border/80 dark:border-white/10 focus:bg-muted/30 focus:border-primary/40 transition-all rounded-xl h-10 px-3 text-sm shadow-sm"
           value={config.num_images || 1}
-          onChange={(e) => updateNode(nodeId, { config: { ...config, num_images: parseInt(e.target.value) } })}
+          onChange={(e) => {
+            const parsed = parseInt(e.target.value, 10);
+            const value = Number.isNaN(parsed) ? 1 : Math.min(4, Math.max(1, parsed));
+            updateNode(nodeId, { config: { ...config, num_images: value } });
+          }}
         />
       </div>
     </div>

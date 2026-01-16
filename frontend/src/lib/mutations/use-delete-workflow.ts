@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/config/supabase';
+import { deleteWorkflow } from '@/lib/supabase';
 import type { Workflow } from '@/types/database';
 
 export const useDeleteWorkflow = () => {
@@ -7,12 +7,7 @@ export const useDeleteWorkflow = () => {
 
   return useMutation({
     mutationFn: async (workflowId: string) => {
-      const { error } = await supabase
-        .from('workflows')
-        .delete()
-        .eq('id', workflowId);
-
-      if (error) throw error;
+      await deleteWorkflow(workflowId);
       return workflowId;
     },
     onSuccess: (workflowId) => {

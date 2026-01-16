@@ -69,10 +69,16 @@ async def create_execution(client: Client, workflow_id: str) -> dict[str, Any]:
     Returns:
         Created execution record.
     """
-    result = client.table("executions").insert({
-        "workflow_id": workflow_id,
-        "status": ExecutionStatus.RUNNING.value,
-    }).execute()
+    result = (
+        client.table("executions")
+        .insert(
+            {
+                "workflow_id": workflow_id,
+                "status": ExecutionStatus.RUNNING.value,
+            }
+        )
+        .execute()
+    )
     return result.data[0]
 
 
@@ -91,7 +97,11 @@ async def create_node_executions(
         List of created node execution records.
     """
     records = [
-        {"execution_id": execution_id, "node_id": node_id, "status": NodeExecutionStatus.PENDING.value}
+        {
+            "execution_id": execution_id,
+            "node_id": node_id,
+            "status": NodeExecutionStatus.PENDING.value,
+        }
         for node_id in node_ids
     ]
     result = client.table("node_executions").insert(records).execute()
@@ -123,10 +133,16 @@ async def update_execution_status(
         update_data["error_message"] = error_message
     if total_cost is not None:
         update_data["total_cost"] = total_cost
-    if status in (ExecutionStatus.COMPLETED, ExecutionStatus.FAILED, ExecutionStatus.CANCELLED):
+    if status in (
+        ExecutionStatus.COMPLETED,
+        ExecutionStatus.FAILED,
+        ExecutionStatus.CANCELLED,
+    ):
         update_data["finished_at"] = "now()"
 
-    result = client.table("executions").update(update_data).eq("id", execution_id).execute()
+    result = (
+        client.table("executions").update(update_data).eq("id", execution_id).execute()
+    )
     return result.data[0]
 
 
@@ -187,7 +203,9 @@ async def get_execution(client: Client, execution_id: str) -> dict[str, Any]:
     Returns:
         Execution record.
     """
-    result = client.table("executions").select("*").eq("id", execution_id).single().execute()
+    result = (
+        client.table("executions").select("*").eq("id", execution_id).single().execute()
+    )
     return result.data
 
 
@@ -205,7 +223,9 @@ async def get_execution_for_user(
     Returns:
         Execution record.
     """
-    execution = client.table("executions").select("*").eq("id", execution_id).single().execute()
+    execution = (
+        client.table("executions").select("*").eq("id", execution_id).single().execute()
+    )
     if not execution.data:
         raise ValueError("Execution not found")
 
@@ -223,7 +243,9 @@ async def get_execution_for_user(
     return execution.data
 
 
-async def get_node_executions(client: Client, execution_id: str) -> list[dict[str, Any]]:
+async def get_node_executions(
+    client: Client, execution_id: str
+) -> list[dict[str, Any]]:
     """
     Fetch all node executions for an execution.
 
@@ -234,7 +256,12 @@ async def get_node_executions(client: Client, execution_id: str) -> list[dict[st
     Returns:
         List of node execution records.
     """
-    result = client.table("node_executions").select("*").eq("execution_id", execution_id).execute()
+    result = (
+        client.table("node_executions")
+        .select("*")
+        .eq("execution_id", execution_id)
+        .execute()
+    )
     return result.data
 
 
@@ -264,13 +291,19 @@ async def create_generation(
     Returns:
         Created generation record.
     """
-    result = client.table("generations").insert({
-        "execution_id": execution_id,
-        "model_id": model_id,
-        "prompt": prompt,
-        "parameters": parameters,
-        "image_urls": image_urls,
-        "aspect_ratio": aspect_ratio,
-        "cost": cost,
-    }).execute()
+    result = (
+        client.table("generations")
+        .insert(
+            {
+                "execution_id": execution_id,
+                "model_id": model_id,
+                "prompt": prompt,
+                "parameters": parameters,
+                "image_urls": image_urls,
+                "aspect_ratio": aspect_ratio,
+                "cost": cost,
+            }
+        )
+        .execute()
+    )
     return result.data[0]

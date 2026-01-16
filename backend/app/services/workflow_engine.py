@@ -96,13 +96,14 @@ class WorkflowEngine:
 
         return {
             "execution_id": execution["id"],
-            "status": ExecutionStatus.RUNNING,
+            # PENDING until background execution actually starts
+            "status": ExecutionStatus.PENDING,
             "nodes": nodes,
             "edges": edges,
             "sorted_node_ids": sorted_node_ids,
         }
 
-    async def run_execution_background(
+    async def _run_execution_background(
         self,
         execution_id: str,
         nodes: list[dict],
@@ -110,7 +111,11 @@ class WorkflowEngine:
         sorted_node_ids: list[str],
     ) -> dict[str, Any]:
         """
-        Run workflow execution in background.
+        Run workflow execution in background. Internal method.
+
+        This is an internal method called only after authentication and
+        authorization have been verified in the route layer. Do not call
+        directly from untrusted contexts.
 
         Args:
             execution_id: UUID of the execution.

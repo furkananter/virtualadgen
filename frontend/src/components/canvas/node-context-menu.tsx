@@ -33,6 +33,7 @@ export const NodeContextMenu = ({ nodeId, children }: NodeContextMenuProps) => {
         x: node.position.x + 50,
         y: node.position.y + 50,
       },
+      data: { ...node.data },
       selected: true,
     };
 
