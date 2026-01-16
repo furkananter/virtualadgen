@@ -19,8 +19,10 @@ export const useCreateWorkflow = () => {
       if (error) throw error;
       return data as Workflow;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+    onSuccess: (newWorkflow) => {
+      queryClient.setQueryData<Workflow[]>(['workflows'], (old) => {
+        return old ? [newWorkflow, ...old] : [newWorkflow];
+      });
     },
   });
 };

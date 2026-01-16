@@ -14,7 +14,7 @@ import {
   ImageModelNode,
   OutputNode
 } from '@/components/nodes';
-import { useMemo, useRef, useCallback } from 'react';
+import { useRef, useCallback, useMemo } from 'react';
 import type { DragEvent } from 'react';
 import { CanvasToolbar } from './canvas-toolbar';
 import { NODE_CONFIGS } from './node-configs';
@@ -117,8 +117,6 @@ export const WorkflowCanvas = () => {
     [project, nodes, setNodes, setSelectedNodeId]
   );
 
-  const memoizedNodeTypes = useMemo(() => nodeTypes, []);
-
   return (
     <div className="h-full w-full bg-background transition-colors duration-500" ref={reactFlowWrapper}>
       <ReactFlow
@@ -131,7 +129,8 @@ export const WorkflowCanvas = () => {
         onPaneClick={() => setSelectedNodeId(null)}
         onDrop={onDrop}
         onDragOver={onDragOver}
-        nodeTypes={memoizedNodeTypes}
+        nodeTypes={nodeTypes}
+        deleteKeyCode={['Backspace', 'Delete']}
         proOptions={{ hideAttribution: true }}
         fitView
       >

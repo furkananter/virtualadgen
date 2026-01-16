@@ -1,10 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { workflowApi } from '@/lib/api';
 import { useExecutionStore } from '@/stores/execution-store';
 import { useDebugStore } from '@/stores/debug-store';
 
 export const useExecuteWorkflow = () => {
-  const queryClient = useQueryClient();
   const { setCurrentExecution, setIsExecuting } = useExecutionStore();
   const { setIsPaused } = useDebugStore();
 
@@ -17,10 +16,7 @@ export const useExecuteWorkflow = () => {
     onSuccess: (data) => {
       // @ts-expect-error - partial execution shape for optimistic update
       setCurrentExecution({ id: data.execution_id, status: data.status });
-      queryClient.invalidateQueries({ queryKey: ['executions'] });
-      queryClient.invalidateQueries({ queryKey: ['node-executions', data.execution_id] });
 
-      // Backend runs synchronously, so when we get the response the execution is done
       if (data.status === 'PAUSED') {
         setIsExecuting(false);
         setIsPaused(true);

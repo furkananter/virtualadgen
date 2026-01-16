@@ -15,6 +15,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ThemeToggle } from '@/components/layout/theme-toggle';
 import { supabase } from '@/config/supabase';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useReactFlow } from 'reactflow';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { toast } from 'sonner';
 import { generateMagicTemplate } from '@/lib/templates';
@@ -78,6 +79,7 @@ export const NodePalette = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const { setNodes, setEdges, setSelectedNodeId, sidebarCollapsed, setSidebarCollapsed } = useCanvasStore();
+  const { fitView } = useReactFlow();
 
   const handleCreateExample = () => {
     const { nodes, edges } = generateMagicTemplate();
@@ -85,6 +87,11 @@ export const NodePalette = () => {
     setEdges(edges);
     setSelectedNodeId(null);
     toast.success('Example workflow generated!');
+
+    // Smoothly fit the new nodes into view
+    setTimeout(() => {
+      fitView({ duration: 800, padding: 0.2 });
+    }, 50);
   };
 
   const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: NodeType) => {
@@ -117,13 +124,16 @@ export const NodePalette = () => {
       {/* Logo Section */}
       <div className={cn(
         "p-6 flex items-center transition-all duration-300",
-        sidebarCollapsed ? "justify-center px-4" : "gap-3"
+        sidebarCollapsed ? "justify-center px-0" : "px-6"
       )}>
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 bg-foreground rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-500 shadow-lg shadow-foreground/5">
-            <span className="text-background font-black text-xl italic leading-none">V</span>
-          </div>
-          {!sidebarCollapsed && <span className="font-black text-xl tracking-tighter italic">VisualAdGen</span>}
+        <Link to="/" className="flex items-center group">
+          {sidebarCollapsed ? (
+            <span className="logo-text text-2xl font-extrabold text-primary animate-in fade-in zoom-in duration-500">V</span>
+          ) : (
+            <span className="logo-text text-[22px] tracking-[0.05em] font-semibold text-foreground flex items-baseline animate-in fade-in slide-in-from-left-4 duration-500">
+              Visual<span className="text-primary font-extrabold">Ad</span><span className="font-light opacity-80">Gen</span>
+            </span>
+          )}
         </Link>
       </div>
 
@@ -174,7 +184,7 @@ export const NodePalette = () => {
                 onDragStart={(event) => onDragStart(event, node.type)}
                 className={cn(
                   "flex items-center gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 cursor-grab active:cursor-grabbing group",
-                  "hover:bg-muted/50 hover:border-border/50 hover:shadow-sm active:scale-[0.98]",
+                  "hover:bg-muted/50 hover:border-border/50 active:scale-[0.98]",
                   sidebarCollapsed ? "justify-center" : ""
                 )}
                 title={sidebarCollapsed ? node.label : undefined}
@@ -199,7 +209,7 @@ export const NodePalette = () => {
               "flex items-center gap-3 p-2 w-full rounded-xl transition-all hover:bg-muted/50 text-left outline-none cursor-pointer group",
               sidebarCollapsed ? "justify-center" : ""
             )}>
-              <div className="w-9 h-9 rounded-xl border border-border/50 shadow-sm overflow-hidden shrink-0 group-hover:border-primary/50 transition-colors">
+              <div className="w-9 h-9 rounded-xl border border-border/50 overflow-hidden shrink-0 group-hover:border-primary/50 transition-colors">
                 {user?.avatar_url ? (
                   <img src={user.avatar_url} alt={user.name || ''} className="w-full h-full object-cover" />
                 ) : (

@@ -3,13 +3,46 @@
 from typing import Any
 import httpx
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
 REDDIT_BASE_URL = "https://www.reddit.com"
 
-# Fallback trends when Reddit blocks us
-FALLBACK_TRENDS = ["trending", "viral", "aesthetic", "premium", "luxury", "modern"]
+# Fallback data when Reddit blocks us
+FALLBACK_DATA = {
+    "posts": [],
+    "trends": ["trending", "viral", "aesthetic", "premium", "luxury"],
+    "top_post": "Latest trending styles and innovations",
+    "keywords": ["modern", "aesthetic", "quality", "premium"],
+    "community_vibe": "quality-focused enthusiasts",
+    "fallback": True,
+}
+
+# Common Reddit noise to filter out (generic, not category-specific)
+NOISE_PATTERNS = [
+    r"^\[.*?\]",  # [MOD], [MEGATHREAD], etc.
+    r"^(daily|weekly|monthly)\s+(thread|discussion|question)",
+    r"^(ask|ama|iama)\s+",
+    r"^(meta|rule|announcement)",
+    r"r/\w+\s+(shopping|help|desk|question|megathread)",  # pinned community threads
+]
+
+STOP_WORDS = {
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for",
+    "of", "with", "by", "from", "is", "are", "was", "were", "be", "been",
+    "being", "have", "has", "had", "do", "does", "did", "will", "would",
+    "could", "should", "may", "might", "must", "shall", "can", "need",
+    "this", "that", "these", "those", "i", "you", "he", "she", "it", "we",
+    "they", "what", "which", "who", "whom", "when", "where", "why", "how",
+    "all", "each", "every", "both", "few", "more", "most", "other", "some",
+    "such", "no", "not", "only", "own", "same", "so", "than", "too", "very",
+    "just", "also", "now", "here", "there", "about", "after", "before",
+    "mod", "thread", "daily", "weekly", "question", "ask", "anyone", "does",
+    "any", "got", "get", "getting", "new", "first", "one", "two", "like",
+    "want", "looking", "help", "need", "best", "good", "bad", "make", "made",
+    "into", "them", "their", "your", "stuff", "really", "think", "know",
+}
 
 
 async def fetch_subreddit_posts(
@@ -18,8 +51,7 @@ async def fetch_subreddit_posts(
     limit: int = 10,
 ) -> dict[str, Any]:
     """
-    Fetch posts from a subreddit using Reddit's public JSON endpoint.
-    Falls back to curated trends if Reddit blocks the request.
+    Fetch posts from a subreddit and extract meaningful insights.
 
     Args:
         subreddit: Name of the subreddit.
@@ -27,20 +59,12 @@ async def fetch_subreddit_posts(
         limit: Number of posts to fetch.
 
     Returns:
-        Dictionary containing posts and extracted trends.
+        Dictionary with posts, keywords, top_post, and community insights.
     """
     headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        "Accept": "application/json",
         "Accept-Language": "en-US,en;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Cache-Control": "max-age=0",
     }
 
     try:
@@ -56,140 +80,152 @@ async def fetch_subreddit_posts(
         posts = []
         for child in data.get("data", {}).get("children", []):
             post_data = child.get("data", {})
-            posts.append(
-                {
-                    "title": post_data.get("title", ""),
-                    "score": post_data.get("score", 0),
-                    "url": post_data.get("url", ""),
-                    "num_comments": post_data.get("num_comments", 0),
-                }
-            )
+            posts.append({
+                "title": post_data.get("title", ""),
+                "score": post_data.get("score", 0),
+                "url": post_data.get("url", ""),
+                "num_comments": post_data.get("num_comments", 0),
+            })
 
-        trends = extract_trends(posts)
-
-        return {
-            "posts": posts,
-            "trends": trends,
-        }
+        return extract_insights(posts, subreddit)
 
     except (httpx.HTTPStatusError, httpx.RequestError) as e:
-        logger.warning(
-            f"Reddit API blocked/failed for r/{subreddit}: {e}. Using fallback trends."
-        )
-        return _get_fallback_trends()
+        logger.warning(f"Reddit API failed for r/{subreddit}: {e}. Using fallback.")
+        return FALLBACK_DATA.copy()
 
 
-def _get_fallback_trends() -> dict[str, Any]:
-    """Return fallback trends when Reddit blocks us."""
-    return {"posts": [], "trends": FALLBACK_TRENDS, "fallback": True}
-
-
-def extract_trends(posts: list[dict[str, Any]], max_trends: int = 10) -> list[str]:
+def extract_insights(posts: list[dict[str, Any]], subreddit: str) -> dict[str, Any]:
     """
-    Extract trending keywords from post titles.
+    Extract meaningful insights from Reddit posts.
 
     Args:
         posts: List of post dictionaries.
-        max_trends: Maximum number of trends to return.
+        subreddit: Subreddit name for context.
 
     Returns:
-        List of trending keywords.
+        Rich insights dictionary.
     """
-    word_counts: dict[str, int] = {}
-    stop_words = {
-        "the",
-        "a",
-        "an",
-        "and",
-        "or",
-        "but",
-        "in",
-        "on",
-        "at",
-        "to",
-        "for",
-        "of",
-        "with",
-        "by",
-        "from",
-        "is",
-        "are",
-        "was",
-        "were",
-        "be",
-        "been",
-        "being",
-        "have",
-        "has",
-        "had",
-        "do",
-        "does",
-        "did",
-        "will",
-        "would",
-        "could",
-        "should",
-        "may",
-        "might",
-        "must",
-        "shall",
-        "can",
-        "need",
-        "this",
-        "that",
-        "these",
-        "those",
-        "i",
-        "you",
-        "he",
-        "she",
-        "it",
-        "we",
-        "they",
-        "what",
-        "which",
-        "who",
-        "whom",
-        "when",
-        "where",
-        "why",
-        "how",
-        "all",
-        "each",
-        "every",
-        "both",
-        "few",
-        "more",
-        "most",
-        "other",
-        "some",
-        "such",
-        "no",
-        "not",
-        "only",
-        "own",
-        "same",
-        "so",
-        "than",
-        "too",
-        "very",
-        "just",
-        "also",
-        "now",
-        "here",
-        "there",
-        "about",
-        "after",
-        "before",
+    if not posts:
+        return FALLBACK_DATA.copy()
+
+    # Filter out noise posts (mod threads, daily questions, etc.)
+    quality_posts = _filter_quality_posts(posts)
+    
+    # Get top post by engagement (score + comments)
+    top_post = _get_top_post(quality_posts or posts)
+    
+    # Extract meaningful keywords
+    keywords = _extract_keywords(quality_posts or posts)
+    
+    # Generate community vibe description
+    community_vibe = _analyze_community_vibe(keywords, subreddit)
+    
+    # Legacy trends field for backward compatibility
+    trends = keywords[:6] if keywords else FALLBACK_DATA["trends"]
+
+    return {
+        "posts": posts,
+        "top_post": top_post,
+        "keywords": keywords,
+        "trends": trends,
+        "community_vibe": community_vibe,
+        "fallback": False,
     }
 
+
+def _filter_quality_posts(posts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Filter out mod threads, daily questions, and other noise."""
+    quality = []
+    for post in posts:
+        title = post.get("title", "").lower()
+        is_noise = any(re.search(pattern, title, re.I) for pattern in NOISE_PATTERNS)
+        if not is_noise and post.get("score", 0) > 0:
+            quality.append(post)
+    return quality
+
+
+def _get_top_post(posts: list[dict[str, Any]]) -> str:
+    """Get the most engaging post title, preferring positive content."""
+    if not posts:
+        return FALLBACK_DATA["top_post"]
+    
+    # Score posts: high upvotes + reasonable comment ratio = quality content
+    # Controversial posts often have low upvotes but many comments
+    def quality_score(p: dict) -> float:
+        score = p.get("score", 0)
+        comments = p.get("num_comments", 0)
+        # Penalize posts with low score but high comments (controversial)
+        if score < 50 and comments > 50:
+            return score * 0.5
+        return score + (comments * 0.3)
+    
+    sorted_posts = sorted(posts, key=quality_score, reverse=True)
+    
+    top_title = sorted_posts[0].get("title", "")
+    
+    # Clean up the title
+    cleaned = re.sub(r"^\[.*?\]\s*", "", top_title)  # Remove [tags]
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    
+    return cleaned if cleaned else FALLBACK_DATA["top_post"]
+
+
+def _extract_keywords(posts: list[dict[str, Any]], max_keywords: int = 8) -> list[str]:
+    """Extract meaningful keywords from post titles."""
+    word_scores: dict[str, float] = {}
+    
     for post in posts:
         title = post.get("title", "")
+        score = post.get("score", 1)
+        
+        # Clean title
+        title = re.sub(r"^\[.*?\]\s*", "", title)  # Remove [tags]
+        title = re.sub(r"[^\w\s-]", " ", title)    # Keep words and hyphens
+        
         words = title.lower().split()
+        
         for word in words:
-            cleaned = "".join(c for c in word if c.isalnum())
-            if cleaned and len(cleaned) > 2 and cleaned not in stop_words:
-                word_counts[cleaned] = word_counts.get(cleaned, 0) + 1
+            cleaned = word.strip("-")
+            if (
+                cleaned 
+                and len(cleaned) > 2 
+                and cleaned not in STOP_WORDS
+                and not cleaned.isdigit()
+            ):
+                # Weight by post score
+                word_scores[cleaned] = word_scores.get(cleaned, 0) + (1 + score * 0.1)
+    
+    # Sort by score and return top keywords
+    sorted_words = sorted(word_scores.items(), key=lambda x: x[1], reverse=True)
+    return [word for word, _ in sorted_words[:max_keywords]]
 
-    sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
-    return [word for word, _ in sorted_words[:max_trends]]
+
+def _analyze_community_vibe(keywords: list[str], subreddit: str) -> str:
+    """Generate a brief community vibe description."""
+    if not keywords:
+        return "engaged community"
+    
+    # Map common keyword patterns to vibes
+    vibe_mappings = {
+        ("espresso", "coffee", "brewing", "roast"): "specialty coffee enthusiasts",
+        ("mechanical", "keyboard", "switches", "keycaps"): "tech-savvy customization fans",
+        ("skincare", "routine", "products", "skin"): "beauty and self-care focused",
+        ("fashion", "style", "outfit", "wear"): "style-conscious trendsetters",
+        ("gaming", "setup", "rgb", "pc"): "gaming and tech enthusiasts",
+        ("fragrance", "perfume", "scent", "cologne"): "fragrance connoisseurs",
+        ("headphones", "audio", "sound", "music"): "audiophile community",
+        ("makeup", "beauty", "cosmetics", "look"): "makeup and beauty lovers",
+    }
+    
+    keyword_set = set(keywords[:5])
+    
+    for pattern_words, vibe in vibe_mappings.items():
+        if keyword_set & set(pattern_words):
+            return vibe
+    
+    # Default: use top keywords
+    top_3 = keywords[:3]
+    if top_3:
+        return f"{', '.join(top_3)} enthusiasts"
+    
+    return "engaged community"

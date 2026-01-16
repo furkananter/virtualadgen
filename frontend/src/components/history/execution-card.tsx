@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Calendar, ChevronRight } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { ExecutionStatus } from './execution-status';
 import { ExecutionGallery } from './execution-gallery';
@@ -38,9 +37,6 @@ export const ExecutionCard = ({ execution }: ExecutionCardProps) => {
                             ${execution.total_cost.toFixed(4)}
                         </span>
                     )}
-                    <Button variant="ghost" size="icon" className="group-hover:translate-x-1 transition-transform border rounded-full">
-                        <ChevronRight className="h-4 w-4" />
-                    </Button>
                 </div>
             </CardHeader>
 

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
+import type { Workflow } from '@/types/database';
 
 export const useDeleteWorkflow = () => {
   const queryClient = useQueryClient();
@@ -15,7 +16,9 @@ export const useDeleteWorkflow = () => {
       return workflowId;
     },
     onSuccess: (workflowId) => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      queryClient.setQueryData<Workflow[]>(['workflows'], (old) => {
+        return old ? old.filter((w) => w.id !== workflowId) : [];
+      });
       queryClient.removeQueries({ queryKey: ['workflow', workflowId] });
     },
   });

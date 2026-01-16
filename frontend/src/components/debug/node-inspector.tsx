@@ -1,5 +1,9 @@
 import { useDebugStore } from '@/stores/debug-store';
-import { AlertCircle, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, PlayCircle, Copy, Check } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface NodeInspectorProps {
     nodeId: string;
@@ -10,16 +14,56 @@ interface DataSectionProps {
     data: unknown;
 }
 
-const DataSection = ({ title, data }: DataSectionProps) => (
-    <div className="space-y-2 mb-6">
-        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">{title}</h4>
-        <div className="bg-muted/30 rounded-xl p-3 border border-border/20 overflow-hidden">
-            <pre className="text-[10px] font-mono whitespace-pre-wrap break-all leading-relaxed max-h-60 overflow-y-auto no-scrollbar">
-                {JSON.stringify(data || {}, null, 2)}
-            </pre>
+const DataSection = ({ title, data }: DataSectionProps) => {
+    const [copied, setCopied] = useState(false);
+    const timeoutRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current !== null) {
+                window.clearTimeout(timeoutRef.current);
+            }
+        };
+    }, []);
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(JSON.stringify(data ?? {}, null, 2));
+            setCopied(true);
+            toast.success(`${title} copied to clipboard`);
+            if (timeoutRef.current !== null) {
+                window.clearTimeout(timeoutRef.current);
+            }
+            timeoutRef.current = window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            toast.error('Failed to copy to clipboard');
+        }
+    };
+
+    return (
+        <div className="space-y-2 mb-6 group">
+            <div className="flex items-center justify-between px-0.5">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">{title}</h4>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                        "h-6 w-6 rounded-md opacity-0 group-hover:opacity-100 transition-all",
+                        copied ? "text-green-500" : "text-muted-foreground/40 hover:text-primary hover:bg-primary/10"
+                    )}
+                    onClick={handleCopy}
+                >
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                </Button>
+            </div>
+            <div className="bg-muted/10 dark:bg-white/5 rounded-xl p-4 border border-border/80 dark:border-white/10 overflow-hidden relative shadow-inner transition-colors group-hover:border-primary/20">
+                <pre className="text-[10px] font-mono whitespace-pre-wrap break-all leading-relaxed max-h-60 overflow-y-auto no-scrollbar scroll-smooth">
+                    {JSON.stringify(data ?? {}, null, 2)}
+                </pre>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export const NodeInspector = ({ nodeId }: NodeInspectorProps) => {
     const { nodeExecutions } = useDebugStore();

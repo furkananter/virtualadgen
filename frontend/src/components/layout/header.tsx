@@ -22,9 +22,10 @@ export const Header = () => {
       }`}>
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2 font-bold text-2xl tracking-tighter">
-            <span className="text-primary italic">V</span>
-            <span className="text-foreground">VisualAdGen</span>
+          <Link to="/" className="flex items-center group">
+            <span className="logo-text text-[22px] tracking-[0.05em] font-semibold text-foreground flex items-baseline">
+              Visual<span className="text-primary font-extrabold">Ad</span><span className="font-light opacity-80">Gen</span>
+            </span>
           </Link>
 
           {user && (

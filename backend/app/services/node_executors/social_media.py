@@ -33,7 +33,11 @@ class SocialMediaExecutor(BaseNodeExecutor):
         platform = config.get("platform", "reddit")
 
         if platform == "reddit":
-            return await self._fetch_reddit_data(config)
+            result = await self._fetch_reddit_data(config)
+            # Pass through inputs for chained workflows
+            merged = self.merge_inputs(inputs)
+            merged.update(result)
+            return merged
 
         raise ValueError(f"Unsupported platform: {platform}")
 
@@ -45,17 +49,13 @@ class SocialMediaExecutor(BaseNodeExecutor):
             config: Configuration with subreddit, sort, and limit.
 
         Returns:
-            Reddit posts and trends.
+            Reddit posts and extracted insights.
         """
         subreddit = config.get("subreddit", "all")
         sort = config.get("sort", "hot")
         limit = config.get("limit", 10)
 
-        result = await fetch_subreddit_posts(subreddit, sort, limit)
-        return {
-            "posts": result["posts"],
-            "trends": result["trends"],
-        }
+        return await fetch_subreddit_posts(subreddit, sort, limit)
 
     def validate_config(self, config: dict[str, Any]) -> bool:
         """

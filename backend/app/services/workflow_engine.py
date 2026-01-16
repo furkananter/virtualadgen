@@ -71,6 +71,63 @@ class WorkflowEngine:
             sorted_node_ids=sorted_node_ids,
         )
 
+    async def prepare_execution(self, workflow_id: str, user_id: str) -> dict[str, Any]:
+        """
+        Prepare workflow execution without running it.
+
+        Creates execution record and returns data needed for background execution.
+
+        Args:
+            workflow_id: UUID of the workflow to execute.
+            user_id: UUID of the authenticated user.
+
+        Returns:
+            Dictionary with execution_id, status, nodes, edges, and sorted_node_ids.
+        """
+        data = await get_workflow_with_nodes_and_edges(
+            self.client, workflow_id, user_id=user_id
+        )
+        nodes = data["nodes"]
+        edges = data["edges"]
+
+        sorted_node_ids = topological_sort(nodes, edges)
+        execution = await create_execution(self.client, workflow_id)
+        await create_node_executions(self.client, execution["id"], sorted_node_ids)
+
+        return {
+            "execution_id": execution["id"],
+            "status": ExecutionStatus.RUNNING,
+            "nodes": nodes,
+            "edges": edges,
+            "sorted_node_ids": sorted_node_ids,
+        }
+
+    async def run_execution_background(
+        self,
+        execution_id: str,
+        nodes: list[dict],
+        edges: list[dict],
+        sorted_node_ids: list[str],
+    ) -> dict[str, Any]:
+        """
+        Run workflow execution in background.
+
+        Args:
+            execution_id: UUID of the execution.
+            nodes: List of node records.
+            edges: List of edge records.
+            sorted_node_ids: Topologically sorted node IDs.
+
+        Returns:
+            Execution result with status.
+        """
+        return await self._run_execution(
+            execution_id=execution_id,
+            nodes=nodes,
+            edges=edges,
+            sorted_node_ids=sorted_node_ids,
+        )
+
     async def step_execution(self, execution_id: str, user_id: str) -> dict[str, Any]:
         """
         Continue execution from a breakpoint.
@@ -193,8 +250,11 @@ class WorkflowEngine:
                 inputs = self._gather_inputs(node_id, edges, outputs)
 
                 await update_node_execution(
-                    self.client, execution_id, node_id,
-                    NodeExecutionStatus.RUNNING, input_data=inputs
+                    self.client,
+                    execution_id,
+                    node_id,
+                    NodeExecutionStatus.RUNNING,
+                    input_data=inputs,
                 )
 
                 context = {"execution_id": execution_id}
@@ -214,12 +274,18 @@ class WorkflowEngine:
                     total_cost += output["cost"]
 
                 await update_node_execution(
-                    self.client, execution_id, node_id,
-                    NodeExecutionStatus.COMPLETED, output_data=output
+                    self.client,
+                    execution_id,
+                    node_id,
+                    NodeExecutionStatus.COMPLETED,
+                    output_data=output,
                 )
 
             await update_execution_status(
-                self.client, execution_id, ExecutionStatus.COMPLETED, total_cost=total_cost
+                self.client,
+                execution_id,
+                ExecutionStatus.COMPLETED,
+                total_cost=total_cost,
             )
             return {
                 "execution_id": execution_id,
@@ -231,11 +297,17 @@ class WorkflowEngine:
             error_msg = str(e)
             if current_node_id:
                 await update_node_execution(
-                    self.client, execution_id, current_node_id,
-                    NodeExecutionStatus.FAILED, error_message=error_msg
+                    self.client,
+                    execution_id,
+                    current_node_id,
+                    NodeExecutionStatus.FAILED,
+                    error_message=error_msg,
                 )
             await update_execution_status(
-                self.client, execution_id, ExecutionStatus.FAILED, error_message=error_msg
+                self.client,
+                execution_id,
+                ExecutionStatus.FAILED,
+                error_message=error_msg,
             )
             return {
                 "execution_id": execution_id,
@@ -280,12 +352,17 @@ class WorkflowEngine:
         node = node_map[node_id]
 
         try:
-            await update_execution_status(self.client, execution_id, ExecutionStatus.RUNNING)
+            await update_execution_status(
+                self.client, execution_id, ExecutionStatus.RUNNING
+            )
 
             inputs = self._gather_inputs(node_id, edges, outputs)
             await update_node_execution(
-                self.client, execution_id, node_id,
-                NodeExecutionStatus.RUNNING, input_data=inputs
+                self.client,
+                execution_id,
+                node_id,
+                NodeExecutionStatus.RUNNING,
+                input_data=inputs,
             )
 
             context = {"execution_id": execution_id}
@@ -305,8 +382,11 @@ class WorkflowEngine:
                 total_cost += output["cost"]
 
             await update_node_execution(
-                self.client, execution_id, node_id,
-                NodeExecutionStatus.COMPLETED, output_data=output
+                self.client,
+                execution_id,
+                node_id,
+                NodeExecutionStatus.COMPLETED,
+                output_data=output,
             )
 
             next_index = start_index + 1
@@ -339,11 +419,17 @@ class WorkflowEngine:
         except Exception as e:
             error_msg = str(e)
             await update_node_execution(
-                self.client, execution_id, node_id,
-                NodeExecutionStatus.FAILED, error_message=error_msg
+                self.client,
+                execution_id,
+                node_id,
+                NodeExecutionStatus.FAILED,
+                error_message=error_msg,
             )
             await update_execution_status(
-                self.client, execution_id, ExecutionStatus.FAILED, error_message=error_msg
+                self.client,
+                execution_id,
+                ExecutionStatus.FAILED,
+                error_message=error_msg,
             )
             return {
                 "execution_id": execution_id,
@@ -419,7 +505,8 @@ class WorkflowEngine:
             Index of paused node or None if not found.
         """
         paused_nodes = {
-            ne["node_id"] for ne in node_executions
+            ne["node_id"]
+            for ne in node_executions
             if ne["status"] == NodeExecutionStatus.PAUSED.value
         }
         for idx, node_id in enumerate(sorted_node_ids):

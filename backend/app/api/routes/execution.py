@@ -1,5 +1,7 @@
 """Workflow execution API routes."""
 
+import asyncio
+import logging
 from fastapi import APIRouter, HTTPException, status
 
 from app.api.deps import CurrentUser
@@ -11,8 +13,18 @@ from app.models.schemas import (
 from app.models.enums import ExecutionStatus
 from app.services.workflow_engine import WorkflowEngine
 
-
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["execution"])
+
+
+def _handle_task_exception(task: asyncio.Task, execution_id: str) -> None:
+    """Handle uncaught exceptions from background tasks."""
+    try:
+        exc = task.exception()
+        if exc:
+            logger.error(f"Background execution {execution_id} failed: {exc}")
+    except asyncio.CancelledError:
+        logger.warning(f"Background execution {execution_id} was cancelled")
 
 
 @router.post(
@@ -35,12 +47,23 @@ async def execute_workflow(
     """
     try:
         engine = WorkflowEngine()
-        result = await engine.execute_workflow(workflow_id, current_user["id"])
+        prepared = await engine.prepare_execution(workflow_id, current_user["id"])
+
+        task = asyncio.create_task(
+            engine.run_execution_background(
+                prepared["execution_id"],
+                prepared["nodes"],
+                prepared["edges"],
+                prepared["sorted_node_ids"],
+            )
+        )
+        task.add_done_callback(
+            lambda t: _handle_task_exception(t, prepared["execution_id"])
+        )
 
         return WorkflowExecuteResponse(
-            execution_id=result["execution_id"],
-            status=result["status"],
-            error_message=result.get("error_message"),
+            execution_id=prepared["execution_id"],
+            status=prepared["status"],
         )
     except ValueError as e:
         raise HTTPException(

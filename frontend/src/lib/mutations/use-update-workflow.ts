@@ -23,10 +23,16 @@ export const useUpdateWorkflow = () => {
       return data as Workflow;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      // Update individual workflow cache
       queryClient.setQueryData<Workflow | null>(['workflow', data.id], (old) => {
         if (!old) return old;
         return { ...old, ...data };
+      });
+
+      // Update workflows list cache
+      queryClient.setQueryData<Workflow[]>(['workflows'], (old) => {
+        if (!old) return old;
+        return old.map((w) => (w.id === data.id ? { ...w, ...data } : w));
       });
     },
   });
