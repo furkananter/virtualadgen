@@ -69,6 +69,11 @@ export const useSaveWorkflow = () => {
                 };
             });
 
+            // WARNING: This delete-then-insert sequence is non-atomic.
+            // Supabase JS client doesn't support client-side transactions.
+            // For production, consider using an RPC function with BEGIN/COMMIT.
+            // If inserts fail after deletes, data may be lost.
+
             // Delete existing edges then nodes (order matters for FK constraints)
             await deleteEdgesByWorkflowId(workflowId);
             await deleteNodesByWorkflowId(workflowId);

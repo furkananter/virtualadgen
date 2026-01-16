@@ -18,7 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useReactFlow } from 'reactflow';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { toast } from 'sonner';
-import { generateMagicTemplate } from '@/lib/templates';
+import { generateAIWorkflow } from '@/lib/templates';
 import { cn } from '@/lib/utils';
 import { NODE_CONFIGS } from './node-configs';
 
@@ -82,11 +82,11 @@ export const NodePalette = () => {
   const { fitView } = useReactFlow();
 
   const handleCreateExample = () => {
-    const { nodes, edges } = generateMagicTemplate();
+    const { nodes, edges } = generateAIWorkflow();
     setNodes(nodes);
     setEdges(edges);
     setSelectedNodeId(null);
-    toast.success('Example workflow generated!');
+    toast.success('AI Workflow generated!');
 
     // Smoothly fit the new nodes into view
     setTimeout(() => {
@@ -156,7 +156,7 @@ export const NodePalette = () => {
             <NavItem
               onClick={handleCreateExample}
               icon={<Sparkles className="h-4 w-4 text-primary" />}
-              label="Magic Template"
+              label="Generate AI Workflow"
               className="hover:bg-primary/5 hover:text-primary"
               sidebarCollapsed={sidebarCollapsed}
             />

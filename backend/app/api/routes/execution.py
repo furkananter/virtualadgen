@@ -41,7 +41,8 @@ def _handle_task_exception(task: asyncio.Task, execution_id: str) -> None:
     try:
         exc = task.exception()
         if exc:
-            error_msg = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
+            tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+            error_msg = f"{type(exc).__name__}: {exc}\n{tb}"
             logger.error(f"Background execution {execution_id} failed: {exc}")
             asyncio.create_task(
                 _update_execution_status_safe(

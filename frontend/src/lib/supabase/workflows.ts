@@ -4,6 +4,8 @@ import { getCurrentUserId } from './auth';
 
 /**
  * Get all workflows for current user, ordered by created_at desc.
+ * Note: Supabase RLS policies enforce per-user access, so no explicit
+ * user_id filter is needed here.
  */
 export const getAllWorkflows = async (): Promise<Workflow[]> => {
     const { data, error } = await supabase

@@ -139,7 +139,7 @@ const TEMPLATES = [
     }
 ];
 
-export const generateMagicTemplate = () => {
+export const generateAIWorkflow = () => {
     const randomTemplate = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
     return createTemplate(randomTemplate.nodes, randomTemplate.edges);
 };
