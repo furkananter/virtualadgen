@@ -38,47 +38,48 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 1rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0 0);
+  --card-foreground: oklch(0.15 0.02 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0 0);
-  --primary: oklch(0.21 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0 0);
-  --secondary-foreground: oklch(0.21 0 0);
-  --muted: oklch(0.967 0 0);
-  --muted-foreground: oklch(0.552 0 0);
-  --accent: oklch(0.967 0 0);
-  --accent-foreground: oklch(0.21 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.92 0 0);
-  --ring: oklch(0.21 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.129 0 0);
-  --sidebar-primary: oklch(0.21 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0 0);
-  --sidebar-accent-foreground: oklch(0.21 0 0);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.21 0 0);
+  --popover-foreground: oklch(0.15 0.02 240);
+  --primary: oklch(0.45 0.25 270);
+  --primary-foreground: oklch(0.99 0.01 220);
+  --secondary: oklch(0.95 0.02 240);
+  --secondary-foreground: oklch(0.2 0.05 240);
+  --muted: oklch(0.95 0.02 240);
+  --muted-foreground: oklch(0.5 0.05 240);
+  --accent: oklch(0.95 0.05 270);
+  --accent-foreground: oklch(0.2 0.05 240);
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.9 0.02 240);
+  --input: oklch(0.9 0.02 240);
+  --ring: oklch(0.45 0.25 270);
+  --sidebar: oklch(0.99 0.01 220);
+  --sidebar-foreground: oklch(0.15 0.02 240);
+  --sidebar-primary: oklch(0.45 0.25 270);
+  --sidebar-primary-foreground: oklch(0.99 0.01 220);
+  --sidebar-accent: oklch(0.95 0.02 240);
+  --sidebar-accent-foreground: oklch(0.45 0.25 270);
+  --sidebar-border: oklch(0.9 0.02 240);
+  --sidebar-ring: oklch(0.45 0.25 270);
+  --primary-rgb: 79 70 229;
 }
 
 .dark {
   --background: oklch(0.129 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.16 0 0);
+  --card: oklch(0.22 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.16 0 0);
+  --popover: oklch(0.22 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
+  --primary: oklch(0.7 0.2 270);
   --primary-foreground: oklch(0.129 0 0);
   --secondary: oklch(0.21 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -87,17 +88,46 @@
   --accent: oklch(0.21 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.5 0.2 25);
-  --border: oklch(0.21 0 0 / 0.8);
+  --border: oklch(0.21 0 0 / 0.5);
   --input: oklch(0.21 0 0);
-  --ring: oklch(0.985 0 0);
-  --sidebar: oklch(0.16 0 0);
+  --ring: oklch(0.7 0.2 270);
+  --sidebar: oklch(0.17 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.7 0.2 270);
   --sidebar-primary-foreground: oklch(0.129 0 0);
   --sidebar-accent: oklch(0.21 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.21 0 0);
-  --sidebar-ring: oklch(0.985 0 0);
+  --sidebar-ring: oklch(0.7 0.2 270);
+  --primary-rgb: 147 130 255;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.5 0 0 / 0.2);
+  border-radius: 100px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.5 0 0 / 0.4);
+  background-clip: content-box;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.5 0 0 / 0.2) transparent;
 }
 
 @layer base {
@@ -147,7 +177,7 @@
   }
 
   .logo-text {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: inherit;
   }
 }
 
@@ -178,5 +208,51 @@
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@layer utilities {
+  .animate-blur-reveal {
+    animation: blur-reveal 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+}
+
+@keyframes blur-reveal {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+    transform: scale(0.96) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    opacity: 0.2;
+    filter: blur(20px);
+    scale: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+    filter: blur(40px);
+    scale: 1.05;
   }
 }

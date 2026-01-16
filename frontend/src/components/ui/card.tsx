@@ -1,26 +1,18 @@
 import * as React from "react"
-import { Squircle } from "@squircle-js/react"
 import { cn } from "@/lib/utils"
 
 function Card({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div className={cn("relative group flex flex-col min-h-fit", className)} {...props}>
-      {/* 
-        To fix the corner radius problem with borders, we use an inset box-shadow 
-        instead of a standard CSS border. Standard borders on clipped elements 
-        often look jagged or misaligned at the corners.
-      */}
-      <Squircle
-        cornerRadius={20}
-        cornerSmoothing={1}
+      <div
         className={cn(
-          "absolute inset-0 bg-card dark:bg-muted/50 transition-all duration-300",
-          "shadow-[inset_0_0_0_1px_var(--border)]",
-          "group-data-[status=RUNNING]:shadow-[inset_0_0_0_2px_#10b981]",
-          "group-data-[status=COMPLETED]:shadow-[inset_0_0_0_2px_#10b981]",
-          "group-data-[status=FAILED]:shadow-[inset_0_0_0_2px_#ef4444]",
-          "group-data-[status=PAUSED]:shadow-[inset_0_0_0_2px_#f59e0b]",
-          "group-data-[selected=true]:shadow-[inset_0_0_0_2px_var(--primary)] group-data-[selected=true]:bg-primary/5"
+          "absolute inset-0 bg-card dark:bg-card transition-all duration-300 rounded-[20px] border border-border shadow-md",
+          "group-hover:shadow-xl group-hover:border-primary/30 transition-all",
+          "group-data-[status=RUNNING]:border-[#10b981] group-data-[status=RUNNING]:border-2",
+          "group-data-[status=COMPLETED]:border-[#10b981] group-data-[status=COMPLETED]:border-2",
+          "group-data-[status=FAILED]:border-[#ef4444] group-data-[status=FAILED]:border-2",
+          "group-data-[status=PAUSED]:border-[#f59e0b] group-data-[status=PAUSED]:border-2",
+          "group-data-[selected=true]:border-primary group-data-[selected=true]:border-2 group-data-[selected=true]:shadow-lg group-data-[selected=true]:shadow-primary/20 group-data-[selected=true]:bg-primary/5"
         )}
       />
       <div data-slot="card" className="relative flex flex-col h-full z-10">

@@ -75,7 +75,7 @@ export const CanvasToolbar = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-background/80 backdrop-blur p-1 rounded-xl border shadow-xl pointer-events-auto">
+    <div className="flex items-center gap-2 bg-card/60 backdrop-blur-3xl p-1.5 rounded-full border border-border/40 shadow-2xl pointer-events-auto">
       {!isPaused && !isExecuting && (
         <Button
           variant="ghost"

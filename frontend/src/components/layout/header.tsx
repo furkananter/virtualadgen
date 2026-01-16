@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth-store';
 import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { LogOut, User as UserIcon, Layers } from 'lucide-react';
-import { ThemeToggle } from './theme-toggle';
 
 export const Header = () => {
   const { user, clearUser } = useAuthStore();
@@ -38,27 +37,23 @@ export const Header = () => {
           )}
         </div>
 
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-
-          <div className="w-px h-6 bg-border mx-1" />
-
+        <div className="flex items-center gap-2 sm:gap-4">
           {user ? (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-3 pr-3 border-r border-border">
-                <div className="h-9 w-9 rounded-full ring-2 ring-border overflow-hidden bg-muted flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 pr-2 sm:pr-3 border-r border-border">
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full ring-2 ring-border overflow-hidden bg-muted flex items-center justify-center shrink-0">
                   {user.avatar_url ? (
                     <img src={user.avatar_url} alt={user.name || ''} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <UserIcon className="h-5 w-5 text-muted-foreground" />
+                    <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                   )}
                 </div>
                 <div className="hidden md:flex flex-col">
                   <span className="text-sm font-bold leading-none text-foreground">
                     {user.name || user.email?.split('@')[0]}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase mt-1">
-                    Free Plan
+                  <span className="text-[10px] text-muted-foreground font-medium lowercase truncate max-w-[120px]">
+                    {user.email}
                   </span>
                 </div>
               </div>
@@ -67,19 +62,16 @@ export const Header = () => {
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="hover:bg-destructive/10 hover:text-destructive transition-colors h-9 w-9"
+                className="hover:bg-destructive/10 hover:text-destructive transition-colors h-8 w-8 sm:h-9 sm:w-9"
                 title="Logout"
               >
-                <LogOut className="h-5 w-5" />
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-4">
-              <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                Sign In
-              </Link>
+            <div className="flex items-center gap-3 sm:gap-4">
               <Link to="/login">
-                <Button className="rounded-full px-6 font-bold transition-all shadow-sm">
+                <Button className="rounded-full px-4 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold transition-all shadow-sm">
                   Get Started
                 </Button>
               </Link>

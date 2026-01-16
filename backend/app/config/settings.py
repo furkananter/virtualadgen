@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     supabase_publishable_key: str
     supabase_secret_api_key: str
     fal_key: str
+    rapid_api_key: str = ""  # Optional, for Reddit fallback
 
     class Config:
         """Pydantic settings configuration."""
