@@ -32,6 +32,7 @@ export const useSaveWorkflow = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
+        mutationKey: ['save-workflow'],
         mutationFn: async ({ workflowId, nodes, edges }: SaveWorkflowParams) => {
             const idMap: Record<string, string> = {};
 

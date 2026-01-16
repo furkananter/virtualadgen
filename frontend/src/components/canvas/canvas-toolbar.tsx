@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, StepForward, Square, Save, Bug, Loader2 } from 'lucide-react';
 import { useExecutionStore } from '@/stores/execution-store';
@@ -11,7 +12,21 @@ import { useDebugStore } from '@/stores/debug-store';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+import { useIsMutating } from '@tanstack/react-query';
+
 export const CanvasToolbar = () => {
+  const isSavingGlobal = useIsMutating({ mutationKey: ['save-workflow'] }) > 0;
+  const [showSavedStatus, setShowSavedStatus] = React.useState(false);
+  const prevIsSaving = React.useRef(isSavingGlobal);
+
+  React.useEffect(() => {
+    if (prevIsSaving.current && !isSavingGlobal) {
+      setShowSavedStatus(true);
+      const timer = setTimeout(() => setShowSavedStatus(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    prevIsSaving.current = isSavingGlobal;
+  }, [isSavingGlobal]);
   const { currentWorkflow } = useWorkflowStore();
   const { nodes, edges } = useCanvasStore();
   const { isExecuting } = useExecutionStore();
@@ -75,7 +90,7 @@ export const CanvasToolbar = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-card/60 backdrop-blur-3xl p-1.5 rounded-full border border-border/40 shadow-2xl pointer-events-auto">
+    <div className="flex items-center gap-2 bg-card/80 backdrop-blur-3xl p-1.5 rounded-[20px] border border-border/40 pointer-events-auto">
       {!isPaused && !isExecuting && (
         <Button
           variant="ghost"
@@ -133,16 +148,21 @@ export const CanvasToolbar = () => {
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 gap-2 font-bold"
+        className={cn(
+          "h-8 gap-2 font-bold transition-all min-w-[90px]",
+          isSavingGlobal ? "text-primary opacity-100" : showSavedStatus ? "text-emerald-500 opacity-100" : "opacity-60 hover:opacity-100"
+        )}
         onClick={handleSave}
-        disabled={saveWorkflow.isPending || !currentWorkflow}
+        disabled={isSavingGlobal || !currentWorkflow}
       >
-        {saveWorkflow.isPending ? (
+        {isSavingGlobal ? (
           <Loader2 className="h-4 w-4 animate-spin" />
+        ) : showSavedStatus ? (
+          <Save className="h-4 w-4 fill-emerald-500/20" />
         ) : (
           <Save className="h-4 w-4" />
         )}
-        Save
+        {isSavingGlobal ? 'Saving...' : showSavedStatus ? 'Saved' : 'Save'}
       </Button>
 
       {hasNodes && (

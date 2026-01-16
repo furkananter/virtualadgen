@@ -18,7 +18,7 @@ export const PromptConfig = ({ nodeId, config }: PromptConfigProps) => {
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-0.5">
           <Terminal className="h-3.5 w-3.5 text-primary/60" />
-          <Label htmlFor="template" className="text-xs font-semibold text-foreground/80 lowercase first-letter:uppercase tracking-tight">
+          <Label htmlFor="template" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
             Prompt Template
           </Label>
         </div>
@@ -28,13 +28,13 @@ export const PromptConfig = ({ nodeId, config }: PromptConfigProps) => {
             value={config.template || ''}
             onChange={(e) => updateNode(nodeId, { config: { ...config, template: e.target.value } })}
             placeholder="Use {{trends}} or {{text}} to inject variables..."
-            className="min-h-[180px] bg-muted/20 dark:bg-white/5 border-border/80 dark:border-white/10 focus:bg-muted/30 focus:border-primary/40 transition-all rounded-xl resize-none p-4 font-mono text-sm leading-relaxed shadow-inner"
+            className="min-h-[180px] bg-muted/20 dark:bg-white/5 border-border/80 dark:border-white/10 focus:bg-muted/30 focus:border-primary/40 transition-all rounded-[20px] resize-none p-4 font-mono text-sm leading-relaxed"
           />
           <div className="absolute bottom-3 right-3 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none">
             <span className="text-[10px] font-mono text-muted-foreground/40 font-medium">TEMPLATE</span>
           </div>
         </div>
-        <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+        <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-[20px] border border-primary/10">
           <Lightbulb className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
           <div className="space-y-1">
             <p className="text-[10px] font-bold text-primary/80 uppercase tracking-wider">Available Variables</p>

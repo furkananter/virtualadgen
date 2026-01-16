@@ -48,7 +48,7 @@ const DataSection = ({ title, data }: DataSectionProps) => {
                     variant="ghost"
                     size="icon"
                     className={cn(
-                        "h-6 w-6 rounded-md opacity-0 group-hover:opacity-100 transition-all",
+                        "h-6 w-6 rounded-lg opacity-0 group-hover:opacity-100 transition-all",
                         copied ? "text-green-500" : "text-muted-foreground/40 hover:text-primary hover:bg-primary/10"
                     )}
                     onClick={handleCopy}
@@ -56,7 +56,7 @@ const DataSection = ({ title, data }: DataSectionProps) => {
                     {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 </Button>
             </div>
-            <div className="bg-muted/10 dark:bg-white/5 rounded-xl p-4 border border-border/80 dark:border-white/10 overflow-hidden relative shadow-inner transition-colors group-hover:border-primary/20">
+            <div className="bg-muted/10 dark:bg-white/5 rounded-[20px] p-4 border border-border/80 dark:border-white/10 overflow-hidden relative transition-colors group-hover:border-primary/20">
                 <pre className="text-[10px] font-mono whitespace-pre-wrap break-all leading-relaxed max-h-60 overflow-y-auto no-scrollbar scroll-smooth">
                     {JSON.stringify(data ?? {}, null, 2)}
                 </pre>
@@ -89,7 +89,7 @@ export const NodeInspector = ({ nodeId }: NodeInspectorProps) => {
 
     return (
         <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-            <div className="flex items-center justify-between mb-6 p-3 bg-muted/20 rounded-xl border border-border/10">
+            <div className="flex items-center justify-between mb-6 p-3 bg-muted/20 rounded-[20px] border border-border/10">
                 <div className="flex items-center gap-2">
                     {getStatusIcon(execution.status)}
                     <span className="text-xs font-bold uppercase tracking-tight">{execution.status}</span>
@@ -102,7 +102,7 @@ export const NodeInspector = ({ nodeId }: NodeInspectorProps) => {
             </div>
 
             {execution.error_message && (
-                <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-xl">
+                <div className="mb-6 p-3 bg-destructive/10 border border-destructive/20 rounded-[20px]">
                     <p className="text-[10px] font-bold text-destructive leading-normal">
                         Error: {execution.error_message}
                     </p>

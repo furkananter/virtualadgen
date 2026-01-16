@@ -22,7 +22,7 @@ export const NavItem = ({
     const content = (
         <div
             className={cn(
-                "flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 group relative",
+                "flex items-center gap-3 p-2.5 rounded-[16px] transition-all duration-200 group relative",
                 "hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground",
                 sidebarCollapsed ? "justify-center" : "",
                 className

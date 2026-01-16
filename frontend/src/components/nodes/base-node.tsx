@@ -37,14 +37,16 @@ const ConnectionHandle = ({ type, position, id, color }: { type: 'target' | 'sou
       position={position}
       id={id}
       className={cn(
-        "w-2 h-2 transition-all duration-300 border-2! border-background! rounded-full! z-50",
-        type === 'target' ? "-left-1" : "-right-1",
+        "w-6 h-6 transition-all duration-300 border-[3px]! rounded-full! z-50",
+        "hover:scale-125 cursor-crosshair border-white!", // Forced white border to pop
+        type === 'target' ? "-left-[12px]" : "-right-[12px]",
         isConnected
-          ? "w-3 h-3 shadow-sm scale-110"
-          : "bg-muted-foreground/30! hover:bg-muted-foreground/60!"
+          ? "bg-black! opacity-100"
+          : "bg-[#333333]! opacity-100"
       )}
       style={{
-        backgroundColor: isConnected ? (color || 'var(--primary)') : undefined,
+        boxShadow: isConnected ? `0 0 15px ${color}80` : 'none',
+        transform: isConnected ? (type === 'target' ? 'translateX(-3px)' : 'translateX(3px)') : undefined
       }}
     />
   );
@@ -91,9 +93,8 @@ export const BaseNode = ({
     <NodeContextMenu nodeId={id}>
       <Card
         className={cn(
-          "min-w-[240px] max-w-[300px] relative overflow-visible! transition-all duration-200 bg-background/95",
-          "rounded-[22px] border-2",
-          selected ? "z-50 shadow-2xl" : "shadow-lg",
+          "min-w-[240px] max-w-[300px] relative transition-all duration-300 bg-background",
+          "rounded-[32px] border-4 outline-none! ring-0!",
           className
         )}
         style={{
@@ -111,7 +112,7 @@ export const BaseNode = ({
               >
                 {icon}
               </div>
-            ) || <div className="w-5 h-5 rounded-full" style={{ backgroundColor: nodeColor }} />}
+            ) || <div className="w-5 h-5 rounded-lg" style={{ backgroundColor: nodeColor }} />}
             <div className="flex flex-col min-w-0">
               <CardTitle className="text-sm font-bold truncate tracking-tight">{title}</CardTitle>
             </div>
@@ -122,7 +123,7 @@ export const BaseNode = ({
               <Popover>
                 <PopoverTrigger asChild>
                   <button
-                    className="h-8 w-8 rounded-full flex items-center justify-center transition-all active:scale-90 hover:brightness-110"
+                    className="h-8 w-8 rounded-[12px] flex items-center justify-center transition-all active:scale-90 hover:brightness-110"
                     style={{
                       backgroundColor: `${nodeColor}10`,
                       color: nodeColor
@@ -185,15 +186,15 @@ export const BaseNode = ({
             )}
 
             {data.has_breakpoint && (
-              <div className="h-4 w-4 bg-destructive text-white rounded-full flex items-center justify-center text-[10px] font-black border-2 border-background shadow-lg shadow-destructive/20">
+              <div className="h-4 w-4 bg-destructive text-white rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-background">
                 !
               </div>
             )}
 
             {status === 'RUNNING' ? (
-              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-lg animate-spin" />
             ) : (
-              <div className={cn("h-3 w-3 rounded-full ring-2 ring-background shadow-sm transition-colors duration-500", getStatusIndicator(status))} />
+              <div className={cn("h-3 w-3 rounded-lg ring-2 ring-background transition-colors duration-500", getStatusIndicator(status))} />
             )}
           </div>
         </CardHeader>

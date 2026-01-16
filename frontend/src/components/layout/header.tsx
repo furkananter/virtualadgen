@@ -10,8 +10,16 @@ export const Header = () => {
   const isLanding = location.pathname === '/';
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    clearUser();
+    try {
+      await supabase.auth.signOut();
+      clearUser();
+      // Clear persistence to ensure no phantom sessions on refresh
+      localStorage.clear();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout error:', error);
+      window.location.href = '/login';
+    }
   };
 
   return (

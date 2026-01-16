@@ -34,7 +34,7 @@ const getId = () => crypto.randomUUID();
 
 export const WorkflowCanvas = () => {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const { project } = useReactFlow();
+  const { project, setCenter } = useReactFlow();
 
   const { currentExecution } = useExecutionStore();
   const { nodeExecutions } = useDebugStore();
@@ -117,6 +117,20 @@ export const WorkflowCanvas = () => {
     [project, nodes, setNodes, setSelectedNodeId]
   );
 
+  const handleNodeClick = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      setSelectedNodeId(node.id);
+    },
+    [setSelectedNodeId]
+  );
+
+  const handleNodeDoubleClick = useCallback(
+    (_: React.MouseEvent, node: Node) => {
+      setCenter(node.position.x + 150, node.position.y + 100, { zoom: 1, duration: 800 });
+    },
+    [setCenter]
+  );
+
   return (
     <div className="h-full w-full bg-background transition-colors duration-500" ref={reactFlowWrapper}>
       <ReactFlow
@@ -125,7 +139,8 @@ export const WorkflowCanvas = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onNodeClick={(_, node) => setSelectedNodeId(node.id)}
+        onNodeClick={handleNodeClick}
+        onNodeDoubleClick={handleNodeDoubleClick}
         onPaneClick={() => setSelectedNodeId(null)}
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -136,9 +151,9 @@ export const WorkflowCanvas = () => {
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={24}
-          size={1.5}
-          className="opacity-20"
+          gap={32}
+          size={2}
+          className="opacity-[0.15] dark:opacity-[0.25]"
           color="currentColor"
         />
         <Controls

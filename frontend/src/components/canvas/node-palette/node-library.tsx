@@ -36,7 +36,7 @@ export const NodeLibrary = ({
                     draggable
                     onDragStart={(event) => onDragStart(event, node.type)}
                     className={cn(
-                        "flex items-center gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 cursor-grab active:cursor-grabbing group",
+                        "flex items-center gap-3 p-2.5 rounded-[16px] border border-transparent transition-all duration-200 cursor-grab active:cursor-grabbing group",
                         "hover:bg-muted/50 hover:border-border/50 active:scale-[0.98]",
                         sidebarCollapsed ? "justify-center" : ""
                     )}

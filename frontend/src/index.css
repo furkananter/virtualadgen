@@ -145,6 +145,18 @@
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .react-flow__node.selected {
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  /* Kill the default blue selection border */
+  .react-flow__nodesselection-rect,
+  .react-flow__selection {
+    @apply border-primary/30 bg-primary/5 rounded-2xl;
   }
 }
 
@@ -164,6 +176,12 @@
     linear-gradient(to right, currentColor 1px, transparent 1px),
     linear-gradient(to bottom, currentColor 1px, transparent 1px);
   @apply opacity-[0.03] dark:opacity-[0.05];
+}
+
+@utility bg-dot {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 32px 32px;
+  @apply opacity-[0.05] dark:opacity-[0.1];
 }
 
 @layer utilities {

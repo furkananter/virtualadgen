@@ -35,49 +35,57 @@ export const LoginPage = () => {
           <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/5 rounded-full blur-[120px] mix-blend-soft-light" />
         </div>
 
-        {/* Global Grid */}
-        <div className="bg-grid absolute inset-0 opacity-[0.05] pointer-events-none" />
+        {/* Global Dot Pattern */}
+        <div className="bg-dot absolute inset-0 pointer-events-none" />
 
-        <PageContainer className="relative z-10 w-full max-w-[440px]">
-          <div className="animate-in fade-in zoom-in-95 duration-1000">
-            <div className="relative bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/20 dark:border-white/10 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.15)] rounded-[40px]">
-              <div className="p-10 md:p-14">
+        <PageContainer className="relative z-10 w-full max-w-[460px]">
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
+            <div className="relative bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-[48px] overflow-hidden">
+              <div className="p-10 md:pt-12 md:px-12 md:pb-10 relative z-10">
                 <div className="flex flex-col items-center text-center">
                   {/* Brand Logo */}
-                  <div className="mb-10 relative">
-                    <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full animate-pulse" />
-                    <div className="relative flex items-center group">
-                      <span className="logo-text text-3xl tracking-[0.05em] font-semibold text-foreground flex items-baseline">
-                        Visual<span className="text-primary font-extrabold">Ad</span><span className="font-light opacity-80">Gen</span>
-                      </span>
-                    </div>
+                  <div className="mb-6 relative flex flex-col items-center">
+                    <div className="absolute -top-4 -left-4 w-12 h-12 bg-primary/20 blur-2xl rounded-full" />
+                    <div className="absolute -bottom-4 -right-4 w-12 h-12 bg-blue-500/20 blur-2xl rounded-full" />
+                    <span className="logo-text text-3xl tracking-[0.05em] font-semibold text-foreground flex items-baseline">
+                      Visual<span className="text-primary font-black">Ad</span><span className="font-light opacity-60">Gen</span>
+                    </span>
                   </div>
 
                   {/* Text Content */}
-                  <div className="space-y-4 mb-10">
-                    <h1 className="text-4xl font-bold tracking-tight text-foreground">
+                  <div className="space-y-2 mb-8">
+                    <h1 className="text-[32px] md:text-3xl font-black tracking-tight text-foreground leading-tight">
                       Welcome back.
                     </h1>
-                    <p className="text-muted-foreground text-lg leading-relaxed font-medium">
+                    <p className="text-muted-foreground/80 text-sm md:text-base leading-relaxed font-medium px-4">
                       Enter your workspace to continue building.
                     </p>
                   </div>
 
                   {/* Action Area */}
-                  <div className="w-full space-y-8">
+                  <div className="w-full space-y-6">
                     <GoogleLoginButton />
 
-                    <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground/40">
-                      <div className="h-px flex-1 bg-border/50" />
-                      Secure Access
-                      <div className="h-px flex-1 bg-border/50" />
+                    <div className="flex items-center gap-6">
+                      <div className="h-px flex-1 bg-linear-to-r from-transparent via-border/50 to-transparent" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 whitespace-nowrap">
+                        Secure Access
+                      </span>
+                      <div className="h-px flex-1 bg-linear-to-r from-transparent via-border/50 to-transparent" />
                     </div>
-
-                    <p className="text-xs text-muted-foreground/50 leading-relaxed max-w-[280px] mx-auto">
-                      By signing in, you agree to our <br />
-                      <span className="text-primary/60 hover:text-primary cursor-pointer underline underline-offset-4 decoration-primary/20 transition-all font-semibold">Terms</span> and <span className="text-primary/60 hover:text-primary cursor-pointer underline underline-offset-4 decoration-primary/20 transition-all font-semibold">Privacy Policy</span>.
-                    </p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Detached Footer */}
+            <div className="mt-5 text-center animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-300 fill-mode-both">
+              <div className="flex flex-col items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/20">
+                <span className="opacity-60">By signing in, you agree to our</span>
+                <div className="flex items-center gap-4 text-muted-foreground/40">
+                  <button className="hover:text-primary transition-all hover:underline underline-offset-8 decoration-primary/40">Terms</button>
+                  <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
+                  <button className="hover:text-primary transition-all hover:underline underline-offset-8 decoration-primary/40">Privacy Policy</button>
                 </div>
               </div>
             </div>
