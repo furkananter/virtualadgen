@@ -55,13 +55,13 @@ export const NodePalette = () => {
 
   return (
     <aside className={cn(
-      "h-full border-r bg-card/10 backdrop-blur-3xl flex flex-col transition-all duration-300 ease-in-out select-none relative",
+      "h-full bg-background/80 dark:bg-card/40 backdrop-blur-3xl flex flex-col transition-all duration-300 ease-in-out select-none relative z-40",
       sidebarCollapsed ? "w-20" : "w-64"
     )}>
       {/* Collapse Toggle */}
       <button
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute -right-3 top-12 w-6 h-6 bg-card border rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-sm z-50 group"
+        className="absolute -right-3 top-12 w-6 h-6 bg-background dark:bg-card border border-border/40 rounded-full flex items-center justify-center hover:bg-muted transition-all shadow-sm z-50 group active:scale-90"
       >
         {sidebarCollapsed ? (
           <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-foreground" />

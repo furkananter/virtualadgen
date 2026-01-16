@@ -1,7 +1,5 @@
 """Image input node executor."""
 
-from typing import Any
-
 from .base import BaseNodeExecutor
 
 
@@ -14,10 +12,10 @@ class ImageInputExecutor(BaseNodeExecutor):
 
     async def execute(
         self,
-        inputs: dict[str, Any],
-        config: dict[str, Any],
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        inputs: dict[str, object],
+        config: dict[str, object],
+        context: dict[str, object] | None = None,
+    ) -> dict[str, str]:
         """
         Execute image input node.
 
@@ -29,10 +27,10 @@ class ImageInputExecutor(BaseNodeExecutor):
         Returns:
             Dictionary with 'image_url' key.
         """
-        image_url = config.get("image_url", "")
+        image_url = str(config.get("image_url", ""))
         return {"image_url": image_url}
 
-    def validate_config(self, config: dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, object]) -> bool:
         """
         Validate image input configuration.
 

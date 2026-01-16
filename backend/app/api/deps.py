@@ -2,7 +2,7 @@
 
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status, Request
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.services.supabase import get_public_supabase_client
@@ -13,7 +13,7 @@ security = HTTPBearer()
 
 async def get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(security)],
-) -> dict:
+) -> dict[str, object]:
     """
     Validate JWT token and return user information.
 
@@ -40,7 +40,7 @@ async def get_current_user(
             )
 
         return {
-            "id": response.user.id,
+            "id": str(response.user.id),
             "email": response.user.email,
         }
 
@@ -52,4 +52,4 @@ async def get_current_user(
         )
 
 
-CurrentUser = Annotated[dict, Depends(get_current_user)]
+CurrentUser = Annotated[dict[str, object], Depends(get_current_user)]

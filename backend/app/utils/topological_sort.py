@@ -1,11 +1,10 @@
 """Topological sorting for workflow nodes."""
 
 from collections import defaultdict, deque
-from typing import Any
 
 
 def topological_sort(
-    nodes: list[dict[str, Any]], edges: list[dict[str, Any]]
+    nodes: list[dict[str, object]], edges: list[dict[str, object]]
 ) -> list[str]:
     """
     Perform topological sort on workflow nodes based on edges.
@@ -24,7 +23,7 @@ def topological_sort(
     Raises:
         ValueError: If the graph contains a cycle or no OUTPUT node is found.
     """
-    node_map = {node["id"]: node for node in nodes}
+    node_map = {str(node["id"]): node for node in nodes}
     node_ids = set(node_map.keys())
 
     # Build reverse adjacency (target -> sources)
@@ -32,14 +31,14 @@ def topological_sort(
     forward_adj: dict[str, list[str]] = defaultdict(list)
 
     for edge in edges:
-        source = edge["source_node_id"]
-        target = edge["target_node_id"]
+        source = str(edge["source_node_id"])
+        target = str(edge["target_node_id"])
         if source in node_ids and target in node_ids:
             reverse_adj[target].append(source)
             forward_adj[source].append(target)
 
     # Find OUTPUT nodes
-    output_nodes = [node["id"] for node in nodes if node.get("type") == "OUTPUT"]
+    output_nodes = [str(node["id"]) for node in nodes if node.get("type") == "OUTPUT"]
 
     if not output_nodes:
         raise ValueError("Workflow must have at least one OUTPUT node")
@@ -64,8 +63,8 @@ def topological_sort(
     in_degree: dict[str, int] = {node_id: 0 for node_id in connected_nodes}
 
     for edge in edges:
-        source = edge["source_node_id"]
-        target = edge["target_node_id"]
+        source = str(edge["source_node_id"])
+        target = str(edge["target_node_id"])
         if source in connected_nodes and target in connected_nodes:
             in_degree[target] += 1
 

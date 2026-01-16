@@ -7,7 +7,7 @@ from supabase import Client
 from app.models.enums import ExecutionStatus
 
 
-async def create_execution(client: Client, workflow_id: str) -> dict:
+async def create_execution(client: Client, workflow_id: str) -> dict[str, object]:
     """
     Create a new execution record.
 
@@ -28,7 +28,10 @@ async def create_execution(client: Client, workflow_id: str) -> dict:
         )
         .execute()
     )
-    return result.data[0]
+    data = result.data
+    if data and isinstance(data, list) and len(data) > 0:
+        return dict(data[0])
+    raise ValueError(f"Failed to create execution for workflow_id={workflow_id}")
 
 
 async def update_execution_status(
@@ -37,7 +40,7 @@ async def update_execution_status(
     status: ExecutionStatus,
     error_message: Optional[str] = None,
     total_cost: Optional[float] = None,
-) -> dict:
+) -> dict[str, object]:
     """
     Update an execution's status.
 
@@ -51,7 +54,7 @@ async def update_execution_status(
     Returns:
         Updated execution record.
     """
-    update_data: dict = {"status": status.value}
+    update_data: dict[str, object] = {"status": status.value}
 
     if error_message:
         update_data["error_message"] = error_message
@@ -67,10 +70,14 @@ async def update_execution_status(
     result = (
         client.table("executions").update(update_data).eq("id", execution_id).execute()
     )
-    return result.data[0]
+
+    data = result.data
+    if data and isinstance(data, list) and len(data) > 0:
+        return dict(data[0])
+    raise ValueError(f"Execution not found: execution_id={execution_id}")
 
 
-async def get_execution(client: Client, execution_id: str) -> dict:
+async def get_execution(client: Client, execution_id: str) -> dict[str, object]:
     """
     Fetch an execution by ID.
 
@@ -84,12 +91,12 @@ async def get_execution(client: Client, execution_id: str) -> dict:
     result = (
         client.table("executions").select("*").eq("id", execution_id).single().execute()
     )
-    return result.data
+    return dict(result.data) if result.data else {}
 
 
 async def get_execution_for_user(
     client: Client, execution_id: str, user_id: str
-) -> dict:
+) -> dict[str, object]:
     """
     Fetch an execution by ID and verify ownership via workflow.
 
@@ -121,4 +128,4 @@ async def get_execution_for_user(
     if not workflow.data or workflow.data.get("user_id") != user_id:
         raise ValueError("Execution not found")
 
-    return execution.data
+    return dict(execution.data)

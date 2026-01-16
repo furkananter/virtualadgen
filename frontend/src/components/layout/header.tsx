@@ -28,18 +28,18 @@ export const Header = () => {
       : 'bg-background/80 backdrop-blur-md border-border'
       }`}>
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center group">
-            <span className="logo-text text-[22px] tracking-[0.05em] font-semibold text-foreground flex items-baseline">
+        <div className="flex items-center gap-4 sm:gap-8">
+          <Link to={user ? "/workflows" : "/"} className="flex items-center group">
+            <span className="logo-text text-[20px] sm:text-[22px] tracking-[0.05em] font-semibold text-foreground flex items-baseline">
               Visual<span className="text-primary font-extrabold">Ad</span><span className="font-light opacity-80">Gen</span>
             </span>
           </Link>
 
           {user && (
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="flex items-center gap-1">
               <NavLink to="/workflows" active={location.pathname === '/workflows'}>
                 <Layers className="h-4 w-4" />
-                Workflows
+                <span className="sr-only sm:not-sr-only sm:inline">Workflows</span>
               </NavLink>
             </nav>
           )}

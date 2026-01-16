@@ -24,7 +24,7 @@ export const useExecuteWorkflow = () => {
       };
       setCurrentExecution(partialExecution as Execution);
 
-      // Force refresh node executions to catch any missed realtime events
+      // Force refresh node executions to catch potential missed realtime events
       queryClient.invalidateQueries({ queryKey: ['node-executions', data.execution_id] });
 
       if (data.status === 'PAUSED') {

@@ -15,12 +15,12 @@ export interface StepExecutionResponse {
 
 export interface CancelExecutionResponse {
   execution_id: string;
-  status: 'CANCELLED';
+  status: ExecutionStatus;
 }
 
 export interface RedditRequest {
   subreddit: string;
-  sort: 'hot' | 'new' | 'top';
+  sort: 'hot' | 'new' | 'top' | 'rising';
   limit: number;
 }
 

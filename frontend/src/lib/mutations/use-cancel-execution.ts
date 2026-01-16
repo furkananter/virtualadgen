@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export const useCancelExecution = () => {
     const { currentExecution, clearExecution } = useExecutionStore();
-    const { setIsPaused } = useDebugStore();
+    const { setIsPaused, clearNodeExecutions } = useDebugStore();
 
     return useMutation({
         mutationFn: async () => {
@@ -17,6 +17,7 @@ export const useCancelExecution = () => {
         onSuccess: () => {
             clearExecution();
             setIsPaused(false);
+            clearNodeExecutions();
             toast.info('Execution cancelled');
         },
         onError: (error: Error) => {

@@ -1,7 +1,5 @@
 """Social media node executor."""
 
-from typing import Any
-
 from .base import BaseNodeExecutor
 from app.services.reddit import fetch_subreddit_posts
 
@@ -15,10 +13,10 @@ class SocialMediaExecutor(BaseNodeExecutor):
 
     async def execute(
         self,
-        inputs: dict[str, Any],
-        config: dict[str, Any],
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        inputs: dict[str, object],
+        config: dict[str, object],
+        context: dict[str, object] | None = None,
+    ) -> dict[str, object]:
         """
         Execute social media node.
 
@@ -30,7 +28,7 @@ class SocialMediaExecutor(BaseNodeExecutor):
         Returns:
             Dictionary with 'posts' and 'trends' keys.
         """
-        platform = config.get("platform", "reddit")
+        platform = str(config.get("platform", "reddit"))
 
         if platform == "reddit":
             result = await self._fetch_reddit_data(config)
@@ -41,7 +39,7 @@ class SocialMediaExecutor(BaseNodeExecutor):
 
         raise ValueError(f"Unsupported platform: {platform}")
 
-    async def _fetch_reddit_data(self, config: dict[str, Any]) -> dict[str, Any]:
+    async def _fetch_reddit_data(self, config: dict[str, object]) -> dict[str, object]:
         """
         Fetch data from Reddit.
 
@@ -51,13 +49,17 @@ class SocialMediaExecutor(BaseNodeExecutor):
         Returns:
             Reddit posts and extracted insights.
         """
-        subreddit = config.get("subreddit", "all")
-        sort = config.get("sort", "hot")
+        subreddit = str(config.get("subreddit", "all"))
+        sort = str(config.get("sort", "hot"))
         limit = config.get("limit", 10)
 
+        if not isinstance(limit, int):
+            limit = 10
+
+        # We assume fetch_subreddit_posts returns dict[str, object]
         return await fetch_subreddit_posts(subreddit, sort, limit)
 
-    def validate_config(self, config: dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, object]) -> bool:
         """
         Validate social media configuration.
 

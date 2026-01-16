@@ -11,8 +11,8 @@ export const ThemeToggle = () => {
                 variant="ghost"
                 size="icon"
                 className={`h-7 w-7 rounded-full transition-all ${theme === 'light'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                     }`}
                 onClick={() => setTheme('light')}
                 title="Light Mode"
@@ -23,8 +23,8 @@ export const ThemeToggle = () => {
                 variant="ghost"
                 size="icon"
                 className={`h-7 w-7 rounded-full transition-all ${theme === 'dark'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                     }`}
                 onClick={() => setTheme('dark')}
                 title="Dark Mode"
@@ -35,8 +35,8 @@ export const ThemeToggle = () => {
                 variant="ghost"
                 size="icon"
                 className={`h-7 w-7 rounded-full transition-all ${theme === 'system'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
                     }`}
                 onClick={() => setTheme('system')}
                 title="System Preference"

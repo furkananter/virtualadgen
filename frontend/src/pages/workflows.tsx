@@ -67,12 +67,12 @@ export const WorkflowsPage = () => {
       <Header />
       <main className="flex-1 pt-16">
         <PageContainer>
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Workflows</h1>
-              <p className="text-muted-foreground">Manage and run your ad generation workflows.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-1">
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Workflows</h1>
+              <p className="text-sm md:text-base text-muted-foreground">Manage and run your ad generation workflows.</p>
             </div>
-            <Button className="gap-2" onClick={handleCreate} disabled={createWorkflow.isPending}>
+            <Button className="gap-2 w-full sm:w-auto h-11 sm:h-10 rounded-xl sm:rounded-lg font-bold" onClick={handleCreate} disabled={createWorkflow.isPending}>
               <Plus className="h-4 w-4" /> New Workflow
             </Button>
           </div>

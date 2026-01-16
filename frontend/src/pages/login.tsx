@@ -38,7 +38,7 @@ export const LoginPage = () => {
         {/* Global Dot Pattern */}
         <div className="bg-dot absolute inset-0 pointer-events-none" />
 
-        <PageContainer className="relative z-10 w-full max-w-[460px]">
+        <PageContainer className="relative z-10 w-full max-w-[560px]">
           <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 ease-out">
             <div className="relative bg-white/40 dark:bg-black/40 backdrop-blur-3xl border border-white/20 dark:border-white/10 rounded-[48px] overflow-hidden">
               <div className="p-10 md:pt-12 md:px-12 md:pb-10 relative z-10">
@@ -53,8 +53,8 @@ export const LoginPage = () => {
                   </div>
 
                   {/* Text Content */}
-                  <div className="space-y-2 mb-8">
-                    <h1 className="text-[32px] md:text-3xl font-black tracking-tight text-foreground leading-tight">
+                  <div className="space-y-2 mb-6">
+                    <h1 className="text-xl md:text-xl font-black tracking-tight text-foreground leading-tight">
                       Welcome back.
                     </h1>
                     <p className="text-muted-foreground/80 text-sm md:text-base leading-relaxed font-medium px-4">
@@ -67,11 +67,11 @@ export const LoginPage = () => {
                     <GoogleLoginButton />
 
                     <div className="flex items-center gap-6">
-                      <div className="h-px flex-1 bg-linear-to-r from-transparent via-border/50 to-transparent" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground/30 whitespace-nowrap">
+                      <div className="h-px flex-1 bg-muted-foreground/50" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground whitespace-nowrap">
                         Secure Access
                       </span>
-                      <div className="h-px flex-1 bg-linear-to-r from-transparent via-border/50 to-transparent" />
+                      <div className="h-px flex-1 bg-muted-foreground/50" />
                     </div>
                   </div>
                 </div>
@@ -80,11 +80,11 @@ export const LoginPage = () => {
 
             {/* Detached Footer */}
             <div className="mt-5 text-center animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-300 fill-mode-both">
-              <div className="flex flex-col items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/20">
-                <span className="opacity-60">By signing in, you agree to our</span>
-                <div className="flex items-center gap-4 text-muted-foreground/40">
+              <div className="flex flex-col items-center gap-1.5 text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+                <span>By signing in, you agree to our</span>
+                <div className="flex items-center gap-4 text-muted-foreground">
                   <button className="hover:text-primary transition-all hover:underline underline-offset-8 decoration-primary/40">Terms</button>
-                  <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
+                  <div className="w-1 h-1 rounded-full bg-muted-foreground" />
                   <button className="hover:text-primary transition-all hover:underline underline-offset-8 decoration-primary/40">Privacy Policy</button>
                 </div>
               </div>

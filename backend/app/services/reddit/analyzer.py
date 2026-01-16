@@ -1,12 +1,13 @@
 """Reddit post analysis and insight extraction."""
 
 import re
-from typing import Any
 
 from .constants import FALLBACK_DATA, NOISE_PATTERNS, STOP_WORDS, VIBE_MAPPINGS
 
 
-def extract_insights(posts: list[dict[str, Any]], subreddit: str) -> dict[str, Any]:
+def extract_insights(
+    posts: list[dict[str, object]], subreddit: str
+) -> dict[str, object]:
     """
     Extract meaningful insights from Reddit posts.
 
@@ -18,7 +19,7 @@ def extract_insights(posts: list[dict[str, Any]], subreddit: str) -> dict[str, A
         Rich insights dictionary.
     """
     if not posts:
-        return FALLBACK_DATA.copy()
+        return dict(FALLBACK_DATA)
 
     # Filter out noise posts (mod threads, daily questions, etc.)
     quality_posts = _filter_quality_posts(posts)
@@ -45,47 +46,54 @@ def extract_insights(posts: list[dict[str, Any]], subreddit: str) -> dict[str, A
     }
 
 
-def _filter_quality_posts(posts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _filter_quality_posts(posts: list[dict[str, object]]) -> list[dict[str, object]]:
     """Filter out mod threads, daily questions, and other noise."""
     quality = []
     for post in posts:
-        title = post.get("title", "").lower()
+        title = str(post.get("title", "")).lower()
         is_noise = any(re.search(pattern, title, re.I) for pattern in NOISE_PATTERNS)
-        if not is_noise and post.get("score", 0) > 0:
+        score = post.get("score", 0)
+        if not is_noise and isinstance(score, (int, float)) and score > 0:
             quality.append(post)
     return quality
 
 
-def _get_top_post(posts: list[dict[str, Any]]) -> str:
+def _get_top_post(posts: list[dict[str, object]]) -> str:
     """Get the most engaging post title, preferring positive content."""
     if not posts:
-        return FALLBACK_DATA["top_post"]
+        return str(FALLBACK_DATA["top_post"])
 
-    def quality_score(p: dict) -> float:
-        score = p.get("score", 0)
-        comments = p.get("num_comments", 0)
+    def quality_score(p: dict[str, object]) -> float:
+        score = float(p.get("score", 0) or 0)
+        comments = float(p.get("num_comments", 0) or 0)
         # Penalize posts with low score but high comments (controversial)
         if score < 50 and comments > 50:
             return score * 0.5
         return score + (comments * 0.3)
 
     sorted_posts = sorted(posts, key=quality_score, reverse=True)
-    top_title = sorted_posts[0].get("title", "")
+    top_title = str(sorted_posts[0].get("title", ""))
 
     # Clean up the title
     cleaned = re.sub(r"^\[.*?\]\s*", "", top_title)  # Remove [tags]
     cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-    return cleaned if cleaned else FALLBACK_DATA["top_post"]
+    return cleaned if cleaned else str(FALLBACK_DATA["top_post"])
 
 
-def _extract_keywords(posts: list[dict[str, Any]], max_keywords: int = 8) -> list[str]:
+def _extract_keywords(
+    posts: list[dict[str, object]], max_keywords: int = 8
+) -> list[str]:
     """Extract meaningful keywords from post titles."""
     word_scores: dict[str, float] = {}
 
     for post in posts:
-        title = post.get("title", "")
-        score = post.get("score", 1)
+        title = str(post.get("title", ""))
+        raw_score = post.get("score", 1)
+        try:
+            score = float(raw_score) if raw_score else 1
+        except (ValueError, TypeError):
+            score = 1
 
         # Clean title
         title = re.sub(r"^\[.*?\]\s*", "", title)  # Remove [tags]
@@ -118,7 +126,7 @@ def _analyze_community_vibe(keywords: list[str], subreddit: str) -> str:
 
     for pattern_words, vibe in VIBE_MAPPINGS.items():
         if keyword_set & set(pattern_words):
-            return vibe
+            return str(vibe)
 
     # Default: use top keywords
     top_3 = keywords[:3]

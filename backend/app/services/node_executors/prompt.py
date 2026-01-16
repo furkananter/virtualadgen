@@ -1,9 +1,11 @@
 """Prompt template node executor."""
 
+import logging
 import re
-from typing import Any
 
 from .base import BaseNodeExecutor
+
+logger = logging.getLogger(__name__)
 
 
 class PromptExecutor(BaseNodeExecutor):
@@ -16,10 +18,10 @@ class PromptExecutor(BaseNodeExecutor):
 
     async def execute(
         self,
-        inputs: dict[str, Any],
-        config: dict[str, Any],
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        inputs: dict[str, object],
+        config: dict[str, object],
+        context: dict[str, object] | None = None,
+    ) -> dict[str, str]:
         """
         Execute prompt template node.
 
@@ -31,12 +33,54 @@ class PromptExecutor(BaseNodeExecutor):
         Returns:
             Dictionary with 'prompt' key containing processed template.
         """
-        template = config.get("template", "")
+        template_val = config.get("template")
+        template = str(template_val) if template_val is not None else ""
         merged_inputs = self.merge_inputs(inputs)
         prompt = self._process_template(template, merged_inputs)
+
+        # AI Optimization
+        if config.get("ai_optimize"):
+            optimized_prompt = await self._optimize_with_ai(prompt)
+            if optimized_prompt:
+                prompt = optimized_prompt
+
         return {"prompt": prompt}
 
-    def _process_template(self, template: str, variables: dict[str, Any]) -> str:
+    async def _optimize_with_ai(self, raw_prompt: str) -> str | None:
+        """Use FAL AI LLM to optimize the prompt for image generation."""
+        import fal_client
+        from app.services.fal.client import _ensure_fal_initialized
+
+        _ensure_fal_initialized()
+
+        system_prompt = (
+            "You are a professional prompt engineer for image generation models like Stable Diffusion, Flux, and Midjourney. "
+            "Your task is to take a raw, simple prompt and transform it into a highly detailed, cinematic, and professional image generation prompt. "
+            "Focus on: lighting, camera angles, textures, artistic style, and specific details. "
+            "Keep the core intent of the original prompt but make it breathtaking. "
+            "IMPORTANT: Return ONLY the final prompt text, no explanations or conversational text."
+        )
+
+        try:
+            result = await fal_client.run_async(
+                "openrouter/router",
+                arguments={
+                    "model": "google/gemini-2.0-flash-001",
+                    "prompt": raw_prompt,
+                    "system_prompt": system_prompt,
+                },
+            )
+
+            if isinstance(result, dict) and "output" in result:
+                return str(result["output"]).strip()
+        except Exception as e:
+            # Fallback to raw prompt on error
+            logger.error("AI Optimization failed: %s", e, exc_info=True)
+            return None
+
+        return None
+
+    def _process_template(self, template: str, variables: dict[str, object]) -> str:
         """
         Replace template variables with actual values.
 
@@ -58,7 +102,7 @@ class PromptExecutor(BaseNodeExecutor):
 
         return re.sub(pattern, replace_var, template)
 
-    def validate_config(self, config: dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, object]) -> bool:
         """
         Validate prompt configuration.
 

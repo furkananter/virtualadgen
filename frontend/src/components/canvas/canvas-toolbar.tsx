@@ -11,7 +11,6 @@ import { useCancelExecution } from '@/lib/mutations/use-cancel-execution';
 import { useDebugStore } from '@/stores/debug-store';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-
 import { useIsMutating } from '@tanstack/react-query';
 
 export const CanvasToolbar = () => {
@@ -97,17 +96,17 @@ export const CanvasToolbar = () => {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-card/80 backdrop-blur-3xl p-1.5 rounded-[20px] border border-border/40 pointer-events-auto">
+    <div className="flex items-center gap-1 md:gap-2 bg-card/80 backdrop-blur-3xl p-1 md:p-1.5 rounded-[16px] md:rounded-[20px] border border-border/40 pointer-events-auto shadow-2xl">
       {!isPaused && !isExecuting && (
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-2 text-primary hover:text-primary hover:bg-primary/10 transition-all font-bold"
+          className="h-8 md:gap-2 text-primary hover:text-primary hover:bg-primary/10 transition-all font-bold px-2 md:px-3"
           onClick={handleRun}
           disabled={isExecuting || !hasNodes || !currentWorkflow}
         >
           <Play className="h-4 w-4 fill-current" />
-          Run
+          <span className="hidden md:inline">Run</span>
         </Button>
       )}
 
@@ -115,12 +114,12 @@ export const CanvasToolbar = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-2 font-bold text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+          className="h-8 md:gap-2 font-bold text-amber-500 hover:text-amber-600 hover:bg-amber-50 px-2 md:px-3"
           onClick={handleStep}
           disabled={stepExecution.isPending}
         >
           {stepExecution.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <StepForward className="h-4 w-4" />}
-          Step
+          <span className="hidden md:inline">Step</span>
         </Button>
       )}
 
@@ -128,35 +127,35 @@ export const CanvasToolbar = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 gap-2 text-destructive font-bold hover:bg-destructive/10"
+          className="h-8 md:gap-2 text-destructive font-bold hover:bg-destructive/10 px-2 md:px-3"
           onClick={handleStop}
           disabled={cancelExecution.isPending}
         >
           <Square className="h-4 w-4 fill-current" />
-          Stop
+          <span className="hidden md:inline">Stop</span>
         </Button>
       )}
 
-      <div className="w-px h-4 bg-border mx-1" />
+      <div className="w-px h-4 bg-border mx-0.5 md:mx-1" />
 
       <Button
         variant="ghost"
         size="sm"
         className={cn(
-          "h-8 gap-2 font-bold transition-all",
+          "h-8 md:gap-2 font-bold transition-all px-2 md:px-3",
           debugMode ? "text-primary bg-primary/10 opacity-100 shadow-sm" : "opacity-60 hover:opacity-100"
         )}
         onClick={handleToggleDebug}
       >
         <Bug className={cn("h-4 w-4", debugMode && "animate-pulse")} />
-        Debug
+        <span className="hidden md:inline">Debug</span>
       </Button>
 
       <Button
         variant="ghost"
         size="sm"
         className={cn(
-          "h-8 gap-2 font-bold transition-all min-w-[90px]",
+          "h-8 md:gap-2 font-bold transition-all px-2 md:px-3",
           isSavingGlobal ? "text-primary opacity-100" : showSavedStatus ? "text-emerald-500 opacity-100" : "opacity-60 hover:opacity-100"
         )}
         onClick={handleSave}
@@ -169,16 +168,18 @@ export const CanvasToolbar = () => {
         ) : (
           <Save className="h-4 w-4" />
         )}
-        {isSavingGlobal ? 'Saving...' : showSavedStatus ? 'Saved' : 'Save'}
+        <span className="hidden md:inline-flex items-center justify-start w-[50px]">
+          {isSavingGlobal ? 'Saving...' : showSavedStatus ? 'Saved' : 'Save'}
+        </span>
       </Button>
 
       {hasNodes && (
-        <>
+        <div className="hidden lg:flex items-center">
           <div className="w-px h-4 bg-border mx-1" />
           <div className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em]">
             <span className="text-foreground">{nodes.length}</span> Nodes • <span className="text-foreground">{edges.length}</span> Edges
           </div>
-        </>
+        </div>
       )}
     </div>
   );

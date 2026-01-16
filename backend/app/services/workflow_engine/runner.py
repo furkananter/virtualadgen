@@ -8,6 +8,7 @@ from app.services.supabase import (
     update_node_execution,
     get_node_executions,
 )
+from .execution_guard import is_execution_cancelled
 from .helpers import (
     gather_inputs,
     execute_node,
@@ -21,6 +22,15 @@ class ExecutionRunner:
 
     def __init__(self, client: Client) -> None:
         self.client = client
+
+    async def _maybe_cancel(self, execution_id: str) -> dict | None:
+        if await is_execution_cancelled(self.client, execution_id):
+            return {
+                "execution_id": execution_id,
+                "status": ExecutionStatus.CANCELLED,
+                "current_node_id": None,
+            }
+        return None
 
     async def run(
         self,
@@ -52,6 +62,10 @@ class ExecutionRunner:
 
         try:
             for idx in range(start_index, len(sorted_node_ids)):
+                cancelled = await self._maybe_cancel(execution_id)
+                if cancelled:
+                    return cancelled
+
                 node_id = sorted_node_ids[idx]
                 node = node_map[node_id]
                 current_node_id = node_id
@@ -100,7 +114,15 @@ class ExecutionRunner:
                     output_data=output,
                 )
 
+                cancelled = await self._maybe_cancel(execution_id)
+                if cancelled:
+                    return cancelled
+
             # All nodes completed
+            cancelled = await self._maybe_cancel(execution_id)
+            if cancelled:
+                return cancelled
+
             await update_execution_status(
                 self.client,
                 execution_id,
@@ -145,6 +167,10 @@ class ExecutionRunner:
         node = node_map[node_id]
 
         try:
+            cancelled = await self._maybe_cancel(execution_id)
+            if cancelled:
+                return cancelled
+
             await update_execution_status(
                 self.client, execution_id, ExecutionStatus.RUNNING
             )
@@ -178,9 +204,17 @@ class ExecutionRunner:
                 output_data=output,
             )
 
+            cancelled = await self._maybe_cancel(execution_id)
+            if cancelled:
+                return cancelled
+
             # Check if done
             next_index = start_index + 1
             if next_index >= len(sorted_node_ids):
+                cancelled = await self._maybe_cancel(execution_id)
+                if cancelled:
+                    return cancelled
+
                 await update_execution_status(
                     self.client,
                     execution_id,

@@ -1,7 +1,5 @@
 """Image model node executor."""
 
-from typing import Any
-
 from .base import BaseNodeExecutor
 from app.services.fal import generate_images
 from app.services.supabase import get_supabase_client, create_generation
@@ -16,10 +14,10 @@ class ImageModelExecutor(BaseNodeExecutor):
 
     async def execute(
         self,
-        inputs: dict[str, Any],
-        config: dict[str, Any],
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        inputs: dict[str, object],
+        config: dict[str, object],
+        context: dict[str, object] | None = None,
+    ) -> dict[str, object]:
         """
         Execute image model node.
 
@@ -32,13 +30,17 @@ class ImageModelExecutor(BaseNodeExecutor):
             Dictionary with 'image_urls' and 'cost' keys.
         """
         merged = self.merge_inputs(inputs)
-        prompt = merged.get("prompt", "")
+        prompt_val = merged.get("prompt")
+        prompt = str(prompt_val) if prompt_val is not None and prompt_val != "" else ""
 
         if not prompt:
             raise ValueError("No prompt provided to image model node")
 
-        model_id = config.get("model", "fal-ai/flux/schnell")
-        parameters = dict(config.get("parameters", {}))
+        model_id = str(config.get("model", "fal-ai/flux/schnell"))
+
+        raw_params = config.get("parameters", {})
+        parameters = dict(raw_params) if isinstance(raw_params, dict) else {}
+
         num_images = parameters.get("num_images", 1)
         aspect_ratio = parameters.get("aspect_ratio", "1:1")
 
@@ -52,30 +54,34 @@ class ImageModelExecutor(BaseNodeExecutor):
         parameters["num_images"] = num_images
         parameters["aspect_ratio"] = aspect_ratio
 
+        # We assume generate_images handles these types correctly and returns dict[str, object]
         result = await generate_images(
             model_id=model_id,
             prompt=prompt,
-            num_images=num_images,
+            num_images=(
+                int(num_images) if not isinstance(num_images, int) else num_images
+            ),
             parameters=parameters,
         )
 
         if context and "execution_id" in context:
+            execution_id = str(context["execution_id"])
             client = get_supabase_client()
             await create_generation(
                 client=client,
-                execution_id=context["execution_id"],
+                execution_id=execution_id,
                 model_id=model_id,
                 prompt=prompt,
                 parameters=parameters,
-                image_urls=result["image_urls"],
-                aspect_ratio=aspect_ratio,
-                cost=result["cost"],
+                image_urls=list(result.get("image_urls", [])),  # type: ignore
+                aspect_ratio=str(aspect_ratio),
+                cost=float(result.get("cost", 0.0)),  # type: ignore
             )
 
         # Return all FAL metadata for inspector visibility
         return result
 
-    def validate_config(self, config: dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, object]) -> bool:
         """
         Validate image model configuration.
 

@@ -2,7 +2,6 @@
 
 import logging
 import random
-from typing import Any
 from urllib.parse import quote
 
 import httpx
@@ -49,7 +48,7 @@ async def fetch_subreddit_posts(
     subreddit: str,
     sort: str = "hot",
     limit: int = 10,
-) -> dict[str, Any]:
+) -> dict[str, object]:
     """
     Fetch posts from a subreddit and extract meaningful insights.
 
@@ -68,7 +67,7 @@ async def fetch_subreddit_posts(
         validated_subreddit = validate_subreddit(subreddit)
     except ValueError as e:
         logger.warning(f"Invalid subreddit: {e}. Using fallback.")
-        return FALLBACK_DATA.copy()
+        return dict(FALLBACK_DATA)
 
     # Try Reddit direct API first
     posts = await _fetch_from_reddit(validated_subreddit, sort, limit)
@@ -83,12 +82,12 @@ async def fetch_subreddit_posts(
         return extract_insights(posts, validated_subreddit)
 
     logger.warning(f"All sources failed for r/{subreddit}. Using static fallback.")
-    return FALLBACK_DATA.copy()
+    return dict(FALLBACK_DATA)
 
 
 async def _fetch_from_reddit(
     subreddit: str, sort: str, limit: int
-) -> list[dict[str, Any]]:
+) -> list[dict[str, object]]:
     """Fetch posts directly from Reddit's JSON API."""
     encoded_subreddit = quote(subreddit, safe="")
 
@@ -102,22 +101,24 @@ async def _fetch_from_reddit(
             response.raise_for_status()
             data = response.json()
 
-        return _parse_reddit_posts(data)
+        if isinstance(data, dict):
+            return _parse_reddit_posts(data)
+        return []
 
-    except (httpx.HTTPStatusError, httpx.RequestError) as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         logger.warning(f"Reddit API failed for r/{subreddit}: {e}. Using fallback.")
         return []
 
 
 async def _fetch_from_apify(
     subreddit: str, sort: str, limit: int
-) -> list[dict[str, Any]]:
+) -> list[dict[str, object]]:
     """Fetch posts from Apify Reddit Scraper as fallback."""
     try:
         import asyncio
 
         # Define blocking operation to run in thread
-        def _run_apify_sync() -> list[dict[str, Any]]:
+        def _run_apify_sync() -> list[dict[str, object]]:
             from apify_client import ApifyClient
 
             client = ApifyClient(settings.apify_api_key)
@@ -142,18 +143,19 @@ async def _fetch_from_apify(
 
             # Fetch results from the dataset (blocking iteration)
             posts = []
-            for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-                if item.get("kind") == "post":
-                    posts.append(
-                        {
-                            "title": item.get("title", ""),
-                            "score": item.get("score", 0),
-                            "url": item.get("url", ""),
-                            "num_comments": item.get("num_comments", 0),
-                        }
-                    )
-                if len(posts) >= limit:
-                    break
+            if isinstance(run, dict) and "defaultDatasetId" in run:
+                for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+                    if isinstance(item, dict) and item.get("kind") == "post":
+                        posts.append(
+                            {
+                                "title": item.get("title", ""),
+                                "score": item.get("score", 0),
+                                "url": item.get("url", ""),
+                                "num_comments": item.get("num_comments", 0),
+                            }
+                        )
+                    if len(posts) >= limit:
+                        break
 
             return posts
 
@@ -168,11 +170,26 @@ async def _fetch_from_apify(
         return []
 
 
-def _parse_reddit_posts(data: dict[str, Any]) -> list[dict[str, Any]]:
+def _parse_reddit_posts(data: dict[str, object]) -> list[dict[str, object]]:
     """Parse Reddit API response into post list."""
     posts = []
-    for child in data.get("data", {}).get("children", []):
+
+    data_obj = data.get("data", {})
+    if not isinstance(data_obj, dict):
+        return []
+
+    children = data_obj.get("children", [])
+    if not isinstance(children, list):
+        return []
+
+    for child in children:
+        if not isinstance(child, dict):
+            continue
+
         post_data = child.get("data", {})
+        if not isinstance(post_data, dict):
+            continue
+
         posts.append(
             {
                 "title": post_data.get("title", ""),

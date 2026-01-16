@@ -8,11 +8,11 @@ async def create_generation(
     execution_id: str,
     model_id: str,
     prompt: str,
-    parameters: dict,
+    parameters: dict[str, object],
     image_urls: list[str],
     aspect_ratio: str,
     cost: float,
-) -> dict:
+) -> dict[str, object]:
     """
     Create a generation record.
 
@@ -44,4 +44,12 @@ async def create_generation(
         )
         .execute()
     )
-    return result.data[0]
+
+    # Cast safety check
+    data = result.data
+    if data and isinstance(data, list) and len(data) > 0:
+        return dict(data[0])
+    raise RuntimeError(
+        f"Failed to insert generation record: execution_id={execution_id}, "
+        f"model_id={model_id}, result={result}"
+    )

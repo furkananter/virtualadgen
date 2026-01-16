@@ -22,7 +22,7 @@ export const useExecutionStore = create<ExecutionState>((set, get) => ({
   // Derived selectors - compute from currentExecution.status
   isExecuting: () => {
     const status = get().currentExecution?.status;
-    return status === 'RUNNING' || status === 'PAUSED';
+    return status === 'PENDING' || status === 'RUNNING' || status === 'PAUSED';
   },
   isTerminal: () => {
     const status = get().currentExecution?.status;

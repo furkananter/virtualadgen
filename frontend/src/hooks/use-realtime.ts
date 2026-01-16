@@ -2,14 +2,17 @@ import { useEffect } from 'react';
 import { supabase } from '@/config/supabase';
 import { useDebugStore } from '@/stores/debug-store';
 import { useExecutionStore } from '@/stores/execution-store';
+import { getNodeExecutionsByExecutionId } from '@/lib/supabase';
 import type { NodeExecution, Execution } from '@/types/database';
 
 export const useRealtime = (executionId: string | null) => {
-  const { setNodeExecution, setIsPaused } = useDebugStore();
+  const { setNodeExecution, setIsPaused, clearNodeExecutions } = useDebugStore();
   const { setCurrentExecution } = useExecutionStore();
 
   useEffect(() => {
     if (!executionId) return;
+
+    let isActive = true;
 
     // Subscribe to node executions for live node updates (inspector, handles)
     const nodeChannel = supabase
@@ -34,6 +37,19 @@ export const useRealtime = (executionId: string | null) => {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Connected to node executions channel');
+          getNodeExecutionsByExecutionId(executionId)
+            .then((nodes) => {
+              if (!isActive) return;
+              nodes.forEach((nodeExecution) => {
+                setNodeExecution(nodeExecution.node_id, nodeExecution);
+                if (nodeExecution.status === 'PAUSED') {
+                  setIsPaused(true);
+                }
+              });
+            })
+            .catch((error) => {
+              console.warn('Failed to sync node executions after subscribe', error);
+            });
         }
       });
 
@@ -59,6 +75,10 @@ export const useRealtime = (executionId: string | null) => {
             setIsPaused(false);
           }
 
+          if (execution.status === 'CANCELLED') {
+            clearNodeExecutions();
+          }
+
           if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(execution.status)) {
             console.log(`Workflow finished with status: ${execution.status}`);
           }
@@ -71,8 +91,9 @@ export const useRealtime = (executionId: string | null) => {
       });
 
     return () => {
+      isActive = false;
       supabase.removeChannel(nodeChannel);
       supabase.removeChannel(execChannel);
     };
-  }, [executionId, setNodeExecution, setIsPaused, setCurrentExecution]);
+  }, [executionId, setNodeExecution, setIsPaused, setCurrentExecution, clearNodeExecutions]);
 };

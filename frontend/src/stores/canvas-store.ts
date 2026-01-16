@@ -26,12 +26,16 @@ interface CanvasState {
   setSelectedNodeId: (id: string | null) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  configPanelTab: 'config' | 'inspector';
+  setConfigPanelTab: (tab: 'config' | 'inspector') => void;
 }
 
 export const useCanvasStore = create<CanvasState>((set, get) => ({
   nodes: [],
   edges: [],
   selectedNodeId: null,
+  configPanelTab: 'config',
+  setConfigPanelTab: (tab) => set({ configPanelTab: tab }),
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
   onNodesChange: (changes) => {

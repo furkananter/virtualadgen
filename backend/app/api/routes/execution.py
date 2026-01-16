@@ -193,7 +193,7 @@ async def cancel_execution(
     """
     Cancel a running or paused execution.
 
-    Marks the execution as cancelled. Any in-progress node will complete
+    Marks the execution as cancelled. The in-progress node will complete
     but no further nodes will be executed.
     """
     result = await engine.cancel_execution(execution_id, current_user["id"])

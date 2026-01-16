@@ -8,9 +8,8 @@ import { cn } from '@/lib/utils';
 import { useDebugStore } from '@/stores/debug-store';
 import { NodeContextMenu } from '@/components/canvas/node-context-menu';
 
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Terminal, Hash, Copy } from 'lucide-react';
-import { toast } from 'sonner';
+import { Terminal } from 'lucide-react';
+import { useCanvasStore } from '@/stores/canvas-store';
 
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
 import type { NodeType } from '@/types/database';
@@ -37,16 +36,13 @@ const ConnectionHandle = ({ type, position, id, color }: { type: 'target' | 'sou
       position={position}
       id={id}
       className={cn(
-        "w-6 h-6 transition-all duration-300 border-[3px]! rounded-full! z-50",
-        "hover:scale-125 cursor-crosshair border-white!", // Forced white border to pop
-        type === 'target' ? "-left-[12px]" : "-right-[12px]",
-        isConnected
-          ? "bg-black! opacity-100"
-          : "bg-[#333333]! opacity-100"
+        "w-6 h-6 transition-all duration-300 rounded-full! z-50 border-[3px]! border-foreground! bg-background!",
+        "hover:scale-110 cursor-crosshair shadow-xl",
+        type === 'target' ? "-left-[13px]" : "-right-[13px]",
+        isConnected ? "opacity-100 scale-105" : "opacity-60 hover:opacity-100"
       )}
       style={{
-        boxShadow: isConnected ? `0 0 15px ${color}80` : 'none',
-        transform: isConnected ? (type === 'target' ? 'translateX(-3px)' : 'translateX(3px)') : undefined
+        boxShadow: isConnected ? `0 0 20px ${color}` : 'none',
       }}
     />
   );
@@ -62,6 +58,7 @@ export const BaseNode = ({
   data,
   className
 }: BaseNodeProps) => {
+  const { setSelectedNodeId, setConfigPanelTab } = useCanvasStore();
   const { debugMode } = useDebugStore();
   const config = NODE_CONFIGS[type as NodeType];
   const nodeColor = config?.color || '#3b82f6';
@@ -75,10 +72,6 @@ export const BaseNode = ({
     return nodeColor;
   };
 
-  const copyToClipboard = (text: string, label: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success(`${label} copied to clipboard`);
-  };
 
   const getStatusIndicator = (s?: NodeExecutionStatus) => {
     switch (s) {
@@ -95,7 +88,7 @@ export const BaseNode = ({
       <Card
         className={cn(
           "min-w-[240px] max-w-[300px] relative transition-all duration-500 bg-background",
-          "rounded-[32px] border-4 outline-none! ring-0!",
+          "rounded-[32px] border-2 outline-none! ring-0!",
           status === 'PAUSED' && "shadow-[0_0_40px_-5px_rgba(245,158,11,0.5)] animate-pulse border-amber-500",
           className
         )}
@@ -122,69 +115,20 @@ export const BaseNode = ({
 
           <div className="flex items-center gap-2 ml-4">
             {debugMode && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    className="h-8 w-8 rounded-[12px] flex items-center justify-center transition-all active:scale-90 hover:brightness-110"
-                    style={{
-                      backgroundColor: `${nodeColor}10`,
-                      color: nodeColor
-                    }}
-                  >
-                    <Terminal className="h-4 w-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent side="top" align="end" className="w-[320px] p-0 bg-background/95 backdrop-blur-3xl border border-border/50 shadow-2xl rounded-[20px] overflow-hidden animate-in zoom-in-95 duration-200">
-                  <div className="px-5 py-4 border-b border-border/50 bg-primary/5 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-primary/10 rounded-lg text-primary">
-                        <Hash className="h-3.5 w-3.5" />
-                      </div>
-                      <span className="text-[11px] font-bold text-foreground uppercase tracking-[0.15em]">Node Inspector</span>
-                    </div>
-                    <button
-                      onClick={() => copyToClipboard(id, 'Node ID')}
-                      className="p-2 hover:bg-muted rounded-xl transition-all active:scale-95 text-muted-foreground hover:text-foreground"
-                      title="Copy System ID"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  <div className="p-5 space-y-6">
-                    <div className="space-y-2.5">
-                      <label className="text-[10px] uppercase font-black text-muted-foreground/50 tracking-widest pl-0.5">System ID</label>
-                      <div className="p-3 bg-muted/30 rounded-2xl font-mono text-[11px] break-all border border-border/50 text-foreground/80 leading-relaxed">
-                        {id}
-                      </div>
-                    </div>
-
-                    {data.execution_data ? (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between pl-0.5">
-                          <label className="text-[10px] uppercase font-black text-primary tracking-widest">Raw Output</label>
-                          <button
-                            onClick={() => copyToClipboard(JSON.stringify(data.execution_data, null, 2), 'Output Data')}
-                            className="text-[10px] font-bold text-primary hover:text-primary/70 transition-colors"
-                          >
-                            Copy JSON
-                          </button>
-                        </div>
-                        <div className="p-4 bg-[#1E1E2E] dark:bg-black/60 rounded-2xl border border-white/5 shadow-inner">
-                          <pre className="font-mono text-[11px] text-blue-300 dark:text-blue-400 max-h-60 overflow-y-auto no-scrollbar leading-relaxed scroll-smooth">
-                            {JSON.stringify(data.execution_data, null, 2)}
-                          </pre>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="py-8 text-center bg-muted/20 rounded-2xl border border-dashed border-border/50">
-                        <Terminal className="h-5 w-5 text-muted-foreground/30 mx-auto mb-2" />
-                        <p className="text-[10px] font-medium text-muted-foreground/60">No execution data available</p>
-                      </div>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedNodeId(id);
+                  setConfigPanelTab('inspector');
+                }}
+                className="h-8 w-8 rounded-[12px] flex items-center justify-center transition-all active:scale-90 hover:brightness-110 shrink-0"
+                style={{
+                  backgroundColor: `${nodeColor}10`,
+                  color: nodeColor
+                }}
+              >
+                <Terminal className="h-4 w-4" />
+              </button>
             )}
 
             {data.has_breakpoint && (

@@ -26,20 +26,20 @@ export const LandingPage = () => {
                 <span className="text-primary uppercase tracking-[0.2em]">Next Generation Creative Engine</span>
               </div>
 
-              <h1 className="text-7xl md:text-[110px] font-bold tracking-tighter leading-[0.9] mb-10 animate-blur-reveal opacity-0 [animation-delay:200ms]">
-                Visualizing <br />
+              <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[110px] font-bold tracking-tighter leading-[0.9] mb-8 md:mb-10 animate-blur-reveal opacity-0 [animation-delay:200ms]">
+                Visualizing <br className="hidden sm:block" />
                 <span className="text-primary">Creativity.</span>
               </h1>
 
-              <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto mb-14 animate-blur-reveal opacity-0 [animation-delay:400ms] leading-relaxed font-medium">
+              <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-14 animate-blur-reveal opacity-0 [animation-delay:400ms] leading-relaxed font-medium px-4">
                 The node-based workspace for high-performance ad generation.
                 Build, automate, and scale your creative vision.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-5 justify-center items-center animate-blur-reveal opacity-0 [animation-delay:600ms]">
-                <Link to="/login">
-                  <Button size="lg" className="h-16 px-20 text-lg gap-3 font-bold rounded-2xl shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-transform dark:text-white">
-                    Start Building <ArrowRight className="h-6 w-6" />
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center items-center w-full sm:w-auto px-4 animate-blur-reveal opacity-0 [animation-delay:600ms]">
+                <Link to="/login" className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full h-14 sm:h-16 px-8 sm:px-20 text-base sm:text-lg gap-3 font-bold rounded-xl sm:rounded-2xl shadow-2xl shadow-primary/20 hover:scale-[1.02] transition-transform dark:text-white">
+                    Start Building <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
                   </Button>
                 </Link>
               </div>
@@ -114,11 +114,11 @@ export const LandingPage = () => {
 
         {/* CTA Section */}
         <section className="py-40">
-          <PageContainer className="text-center">
-            <h2 className="text-6xl md:text-8xl font-bold tracking-tighter mb-12">Built for the future. <br /><span className="text-muted-foreground/40 text-glow">Available today.</span></h2>
+          <PageContainer className="text-center px-4">
+            <h2 className="text-4xl sm:text-6xl md:text-8xl font-bold tracking-tighter mb-8 md:mb-12">Built for the future. <br /><span className="text-muted-foreground/40 text-glow">Available today.</span></h2>
             <Link to="/login">
-              <Button size="lg" className="h-20 px-16 text-2xl gap-3 font-extrabold rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-95">
-                Join the Beta <ArrowRight className="h-8 w-8" />
+              <Button size="lg" className="w-full sm:w-auto h-16 sm:h-20 px-8 sm:px-16 text-lg sm:text-2xl gap-3 font-extrabold rounded-2xl sm:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] bg-foreground text-background hover:bg-foreground/90 transition-all active:scale-95">
+                Join the Beta <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
               </Button>
             </Link>
           </PageContainer>

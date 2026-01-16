@@ -1,7 +1,5 @@
 """Output node executor."""
 
-from typing import Any
-
 from .base import BaseNodeExecutor
 
 
@@ -14,10 +12,10 @@ class OutputExecutor(BaseNodeExecutor):
 
     async def execute(
         self,
-        inputs: dict[str, Any],
-        config: dict[str, Any],
-        context: dict[str, Any] | None = None,
-    ) -> dict[str, Any]:
+        inputs: dict[str, object],
+        config: dict[str, object],
+        context: dict[str, object] | None = None,
+    ) -> dict[str, list[str]]:
         """
         Execute output node.
 
@@ -35,12 +33,17 @@ class OutputExecutor(BaseNodeExecutor):
         if not isinstance(image_urls, list):
             image_urls = [image_urls] if image_urls else []
 
+        # image_urls might contain non-string objects, but based on usage they should be strings
+        # We'll treat them as objects for now to be safe, but return list[str] as promised
         num_images = config.get("num_images", len(image_urls))
-        final_images = image_urls[:num_images]
+        if not isinstance(num_images, int):
+            num_images = len(image_urls)
+
+        final_images = [str(url) for url in image_urls[:num_images]]
 
         return {"final_images": final_images}
 
-    def validate_config(self, config: dict[str, Any]) -> bool:
+    def validate_config(self, config: dict[str, object]) -> bool:
         """
         Validate output configuration.
 
