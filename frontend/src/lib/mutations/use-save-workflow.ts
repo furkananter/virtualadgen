@@ -122,7 +122,6 @@ export const useSaveWorkflow = () => {
                     edges: data.edges,
                 };
             });
-            toast.success('Workflow saved successfully!');
         },
         onError: (error: Error) => {
             console.error('Save error:', error);

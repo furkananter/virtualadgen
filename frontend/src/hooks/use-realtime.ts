@@ -50,7 +50,6 @@ export const useRealtime = (executionId: string | null) => {
         },
         (payload) => {
           const execution = payload.new as Execution;
-          // @ts-ignore - store expects partial or matches
           setCurrentExecution(execution);
 
           if (execution.status === 'RUNNING') {

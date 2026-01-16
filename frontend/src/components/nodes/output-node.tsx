@@ -4,7 +4,8 @@ import type { NodeProps } from 'reactflow';
 import type { NodeData } from '@/types/nodes';
 
 export const OutputNode = (props: NodeProps<NodeData>) => {
-    const finalImages = props.data.execution_data?.final_images as string[] | undefined;
+    const executionData = props.data.execution_data as { final_images?: string[] } | null | undefined;
+    const finalImages = executionData?.final_images;
 
     return (
         <BaseNode title="Output" icon={<Download className="h-4 w-4" />} {...props}>

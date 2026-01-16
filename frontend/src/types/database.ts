@@ -46,7 +46,7 @@ export interface Node {
   workflow_id: string;
   type: NodeType;
   name: string;
-  config: Record<string, any>;
+  config: Record<string, unknown>;
   position_x: number;
   position_y: number;
   has_breakpoint: boolean;
@@ -79,8 +79,8 @@ export interface NodeExecution {
   execution_id: string;
   node_id: string;
   status: NodeExecutionStatus;
-  input_data: Record<string, any> | null;
-  output_data: Record<string, any> | null;
+  input_data: Record<string, unknown> | null;
+  output_data: Record<string, unknown> | null;
   error_message: string | null;
   started_at: string | null;
   finished_at: string | null;
@@ -91,7 +91,7 @@ export interface Generation {
   execution_id: string;
   model_id: string;
   prompt: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
   image_urls: string[];
   aspect_ratio: string;
   cost: number | null;

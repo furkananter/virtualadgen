@@ -62,17 +62,16 @@ function Button({
   }
 
   return (
-    <Squircle
-      cornerRadius={radius}
-      cornerSmoothing={1}
-      as="button"
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...(props as any)}
-    />
+    <Squircle cornerRadius={radius} cornerSmoothing={1} asChild>
+      <button
+        data-slot="button"
+        data-variant={variant}
+        data-size={size}
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      />
+    </Squircle>
   )
 }
 
-export { Button, buttonVariants }
+export { Button }

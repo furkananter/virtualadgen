@@ -14,6 +14,8 @@ interface ImageModelConfigProps {
   };
 }
 
+type ImageModelParamKey = 'guidance_scale' | 'num_inference_steps' | 'seed';
+
 export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
 
@@ -25,7 +27,7 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
 
   const parameters = config.parameters || {};
 
-  const handleParamChange = (key: string, value: any) => {
+  const handleParamChange = (key: ImageModelParamKey, value: number | undefined) => {
     updateNode(nodeId, {
       config: {
         ...config,

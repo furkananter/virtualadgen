@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
-import { Workflow } from '@/types/database';
+import type { Workflow } from '@/types/database';
 
 export const useWorkflowsQuery = () => {
   return useQuery({

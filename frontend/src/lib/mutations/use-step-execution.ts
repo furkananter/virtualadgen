@@ -17,11 +17,18 @@ export const useStepExecution = () => {
             return response;
         },
         onSuccess: (data) => {
-            // @ts-ignore
+            // @ts-expect-error - partial execution update
             setCurrentExecution({ ...currentExecution, status: data.status });
             queryClient.invalidateQueries({ queryKey: ['node-executions', currentExecution?.id] });
 
-            if (data.status === 'COMPLETED' || data.status === 'FAILED') {
+            if (data.status === 'FAILED') {
+                toast.error(data.error_message || 'Workflow execution failed');
+                setIsExecuting(false);
+                setIsPaused(false);
+                return;
+            }
+
+            if (data.status === 'COMPLETED') {
                 toast.success('Workflow execution completed');
                 setIsExecuting(false);
                 setIsPaused(false);

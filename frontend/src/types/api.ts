@@ -3,12 +3,14 @@ import type { ExecutionStatus } from './database';
 export interface ExecuteWorkflowResponse {
   execution_id: string;
   status: ExecutionStatus;
+  error_message?: string;
 }
 
 export interface StepExecutionResponse {
   execution_id: string;
   status: ExecutionStatus;
   current_node_id: string | null;
+  error_message?: string;
 }
 
 export interface CancelExecutionResponse {

@@ -11,6 +11,7 @@ class WorkflowExecuteResponse(BaseModel):
 
     execution_id: str
     status: ExecutionStatus
+    error_message: Optional[str] = None
 
 
 class ExecutionStepResponse(BaseModel):
@@ -19,6 +20,7 @@ class ExecutionStepResponse(BaseModel):
     execution_id: str
     status: ExecutionStatus
     current_node_id: Optional[str] = None
+    error_message: Optional[str] = None
 
 
 class ExecutionCancelResponse(BaseModel):

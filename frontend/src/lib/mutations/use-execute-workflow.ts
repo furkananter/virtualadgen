@@ -15,7 +15,7 @@ export const useExecuteWorkflow = () => {
       return response;
     },
     onSuccess: (data) => {
-      // @ts-ignore - database type vs api response
+      // @ts-expect-error - partial execution shape for optimistic update
       setCurrentExecution({ id: data.execution_id, status: data.status });
       queryClient.invalidateQueries({ queryKey: ['executions'] });
       queryClient.invalidateQueries({ queryKey: ['node-executions', data.execution_id] });

@@ -1,18 +1,23 @@
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { Plus, Workflow as WorkflowIcon } from 'lucide-react';
+import { Plus, Workflow as WorkflowIcon, Pencil, Trash2 } from 'lucide-react';
 import { useWorkflowsQuery } from '@/lib/queries/use-workflows-query';
 import { LoadingScreen } from '@/components/shared/loading-screen';
 import { useCreateWorkflow } from '@/lib/mutations/use-create-workflow';
+import { useUpdateWorkflow } from '@/lib/mutations/use-update-workflow';
+import { useDeleteWorkflow } from '@/lib/mutations/use-delete-workflow';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export const WorkflowsPage = () => {
   const navigate = useNavigate();
   const { data: workflows, isLoading } = useWorkflowsQuery();
   const createWorkflow = useCreateWorkflow();
+  const updateWorkflow = useUpdateWorkflow();
+  const deleteWorkflow = useDeleteWorkflow();
 
   const handleCreate = async () => {
     try {
@@ -24,6 +29,36 @@ export const WorkflowsPage = () => {
       navigate(`/workflows/${workflow.id}`);
     } catch (error) {
       console.error('Failed to create workflow:', error);
+    }
+  };
+
+  const handleRename = async (workflow: { id: string; name: string; description: string | null }) => {
+    const name = window.prompt('Workflow name', workflow.name);
+    if (!name || name.trim().length === 0) return;
+
+    const descriptionInput = window.prompt('Workflow description', workflow.description || '');
+    const description = descriptionInput === null ? workflow.description : descriptionInput;
+
+    try {
+      await updateWorkflow.mutateAsync({
+        workflowId: workflow.id,
+        updates: { name: name.trim(), description },
+      });
+      toast.success('Workflow updated');
+    } catch (error) {
+      toast.error(`Update failed: ${(error as Error).message}`);
+    }
+  };
+
+  const handleDelete = async (workflowId: string) => {
+    const confirmed = window.confirm('Delete this workflow? This cannot be undone.');
+    if (!confirmed) return;
+
+    try {
+      await deleteWorkflow.mutateAsync(workflowId);
+      toast.success('Workflow deleted');
+    } catch (error) {
+      toast.error(`Delete failed: ${(error as Error).message}`);
     }
   };
 
@@ -65,8 +100,38 @@ export const WorkflowsPage = () => {
                         {workflow.description || 'No description provided.'}
                       </CardDescription>
                     </CardHeader>
-                    <CardFooter className="text-xs text-muted-foreground pt-0">
-                      Created {new Date(workflow.created_at).toLocaleDateString()}
+                    <CardFooter className="text-xs text-muted-foreground pt-0 flex items-center justify-between">
+                      <span>Created {new Date(workflow.created_at).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleRename({
+                              id: workflow.id,
+                              name: workflow.name,
+                              description: workflow.description,
+                            });
+                          }}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-destructive hover:text-destructive"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            handleDelete(workflow.id);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </CardFooter>
                   </Card>
                 </Link>

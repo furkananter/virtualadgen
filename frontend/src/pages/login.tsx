@@ -1,7 +1,6 @@
 import { Header } from '@/components/layout/header';
 import { PageContainer } from '@/components/layout/page-container';
 import { GoogleLoginButton } from '@/components/auth/google-login-button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Sparkles } from 'lucide-react';
 import { Squircle } from '@squircle-js/react';
 import { useAuthStore } from '@/stores/auth-store';

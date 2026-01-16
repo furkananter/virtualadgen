@@ -13,7 +13,7 @@ from app.services.supabase import (
     create_node_executions,
     update_execution_status,
     update_node_execution,
-    get_execution,
+    get_execution_for_user,
     get_node_executions,
 )
 from app.services.node_executors import (
@@ -43,17 +43,20 @@ class WorkflowEngine:
         """Initialize the workflow engine."""
         self.client: Client = get_supabase_client()
 
-    async def execute_workflow(self, workflow_id: str) -> dict[str, Any]:
+    async def execute_workflow(self, workflow_id: str, user_id: str) -> dict[str, Any]:
         """
         Start executing a workflow.
 
         Args:
             workflow_id: UUID of the workflow to execute.
+            user_id: UUID of the authenticated user.
 
         Returns:
             Dictionary with execution_id and status.
         """
-        data = await get_workflow_with_nodes_and_edges(self.client, workflow_id)
+        data = await get_workflow_with_nodes_and_edges(
+            self.client, workflow_id, user_id=user_id
+        )
         nodes = data["nodes"]
         edges = data["edges"]
 
@@ -68,17 +71,18 @@ class WorkflowEngine:
             sorted_node_ids=sorted_node_ids,
         )
 
-    async def step_execution(self, execution_id: str) -> dict[str, Any]:
+    async def step_execution(self, execution_id: str, user_id: str) -> dict[str, Any]:
         """
         Continue execution from a breakpoint.
 
         Args:
             execution_id: UUID of the paused execution.
+            user_id: UUID of the authenticated user.
 
         Returns:
             Dictionary with execution_id, status, and current_node_id.
         """
-        execution = await get_execution(self.client, execution_id)
+        execution = await get_execution_for_user(self.client, execution_id, user_id)
 
         if execution["status"] != ExecutionStatus.PAUSED.value:
             return {
@@ -88,7 +92,7 @@ class WorkflowEngine:
             }
 
         workflow_data = await get_workflow_with_nodes_and_edges(
-            self.client, execution["workflow_id"]
+            self.client, execution["workflow_id"], user_id=user_id
         )
         nodes = workflow_data["nodes"]
         edges = workflow_data["edges"]
@@ -112,16 +116,18 @@ class WorkflowEngine:
             start_index=paused_idx,
         )
 
-    async def cancel_execution(self, execution_id: str) -> dict[str, Any]:
+    async def cancel_execution(self, execution_id: str, user_id: str) -> dict[str, Any]:
         """
         Cancel a running or paused execution.
 
         Args:
             execution_id: UUID of the execution to cancel.
+            user_id: UUID of the authenticated user.
 
         Returns:
             Dictionary with execution_id and cancelled status.
         """
+        await get_execution_for_user(self.client, execution_id, user_id)
         await update_execution_status(
             self.client, execution_id, ExecutionStatus.CANCELLED
         )
@@ -231,7 +237,12 @@ class WorkflowEngine:
             await update_execution_status(
                 self.client, execution_id, ExecutionStatus.FAILED, error_message=error_msg
             )
-            raise
+            return {
+                "execution_id": execution_id,
+                "status": ExecutionStatus.FAILED,
+                "current_node_id": current_node_id,
+                "error_message": error_msg,
+            }
 
     async def _step_single_node(
         self,
@@ -268,62 +279,78 @@ class WorkflowEngine:
         node_id = sorted_node_ids[start_index]
         node = node_map[node_id]
 
-        await update_execution_status(self.client, execution_id, ExecutionStatus.RUNNING)
+        try:
+            await update_execution_status(self.client, execution_id, ExecutionStatus.RUNNING)
 
-        inputs = self._gather_inputs(node_id, edges, outputs)
-        await update_node_execution(
-            self.client, execution_id, node_id,
-            NodeExecutionStatus.RUNNING, input_data=inputs
-        )
+            inputs = self._gather_inputs(node_id, edges, outputs)
+            await update_node_execution(
+                self.client, execution_id, node_id,
+                NodeExecutionStatus.RUNNING, input_data=inputs
+            )
 
-        context = {"execution_id": execution_id}
-        if node.get("type") == NodeType.IMAGE_MODEL.value:
-            output_config = self._get_output_config(node_id, nodes, edges)
-            if output_config:
-                context["output_config"] = output_config
+            context = {"execution_id": execution_id}
+            if node.get("type") == NodeType.IMAGE_MODEL.value:
+                output_config = self._get_output_config(node_id, nodes, edges)
+                if output_config:
+                    context["output_config"] = output_config
 
-        output = await self._execute_node(
-            node=node,
-            inputs=inputs,
-            context=context,
-        )
-        outputs[node_id] = output
+            output = await self._execute_node(
+                node=node,
+                inputs=inputs,
+                context=context,
+            )
+            outputs[node_id] = output
 
-        if "cost" in output:
-            total_cost += output["cost"]
+            if "cost" in output:
+                total_cost += output["cost"]
 
-        await update_node_execution(
-            self.client, execution_id, node_id,
-            NodeExecutionStatus.COMPLETED, output_data=output
-        )
+            await update_node_execution(
+                self.client, execution_id, node_id,
+                NodeExecutionStatus.COMPLETED, output_data=output
+            )
 
-        next_index = start_index + 1
-        if next_index >= len(sorted_node_ids):
+            next_index = start_index + 1
+            if next_index >= len(sorted_node_ids):
+                await update_execution_status(
+                    self.client,
+                    execution_id,
+                    ExecutionStatus.COMPLETED,
+                    total_cost=total_cost,
+                )
+                return {
+                    "execution_id": execution_id,
+                    "status": ExecutionStatus.COMPLETED,
+                    "current_node_id": None,
+                }
+
+            next_node_id = sorted_node_ids[next_index]
+            await update_node_execution(
+                self.client, execution_id, next_node_id, NodeExecutionStatus.PAUSED
+            )
             await update_execution_status(
-                self.client,
-                execution_id,
-                ExecutionStatus.COMPLETED,
-                total_cost=total_cost,
+                self.client, execution_id, ExecutionStatus.PAUSED
+            )
+
+            return {
+                "execution_id": execution_id,
+                "status": ExecutionStatus.PAUSED,
+                "current_node_id": next_node_id,
+            }
+        except Exception as e:
+            error_msg = str(e)
+            await update_node_execution(
+                self.client, execution_id, node_id,
+                NodeExecutionStatus.FAILED, error_message=error_msg
+            )
+            await update_execution_status(
+                self.client, execution_id, ExecutionStatus.FAILED, error_message=error_msg
             )
             return {
                 "execution_id": execution_id,
-                "status": ExecutionStatus.COMPLETED,
-                "current_node_id": None,
+                "status": ExecutionStatus.FAILED,
+                "current_node_id": node_id,
+                "error_message": error_msg,
             }
-
-        next_node_id = sorted_node_ids[next_index]
-        await update_node_execution(
-            self.client, execution_id, next_node_id, NodeExecutionStatus.PAUSED
-        )
-        await update_execution_status(
-            self.client, execution_id, ExecutionStatus.PAUSED
-        )
-
-        return {
-            "execution_id": execution_id,
-            "status": ExecutionStatus.PAUSED,
-            "current_node_id": next_node_id,
-        }
 
     def _gather_inputs(
         self,

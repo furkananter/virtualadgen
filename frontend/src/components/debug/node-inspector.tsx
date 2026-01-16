@@ -5,6 +5,22 @@ interface NodeInspectorProps {
     nodeId: string;
 }
 
+interface DataSectionProps {
+    title: string;
+    data: unknown;
+}
+
+const DataSection = ({ title, data }: DataSectionProps) => (
+    <div className="space-y-2 mb-6">
+        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">{title}</h4>
+        <div className="bg-muted/30 rounded-xl p-3 border border-border/20 overflow-hidden">
+            <pre className="text-[10px] font-mono whitespace-pre-wrap break-all leading-relaxed max-h-60 overflow-y-auto no-scrollbar">
+                {JSON.stringify(data || {}, null, 2)}
+            </pre>
+        </div>
+    </div>
+);
+
 export const NodeInspector = ({ nodeId }: NodeInspectorProps) => {
     const { nodeExecutions } = useDebugStore();
     const execution = nodeExecutions.get(nodeId);
@@ -26,17 +42,6 @@ export const NodeInspector = ({ nodeId }: NodeInspectorProps) => {
             default: return <Clock className="h-4 w-4" />;
         }
     };
-
-    const DataSection = ({ title, data }: { title: string; data: unknown }) => (
-        <div className="space-y-2 mb-6">
-            <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">{title}</h4>
-            <div className="bg-muted/30 rounded-xl p-3 border border-border/20 overflow-hidden">
-                <pre className="text-[10px] font-mono whitespace-pre-wrap break-all leading-relaxed max-h-60 overflow-y-auto no-scrollbar">
-                    {JSON.stringify(data || {}, null, 2)}
-                </pre>
-            </div>
-        </div>
-    );
 
     return (
         <div className="animate-in fade-in slide-in-from-right-2 duration-300">

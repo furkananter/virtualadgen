@@ -28,7 +28,7 @@ def get_public_supabase_client() -> Client:
 
 
 async def get_workflow_with_nodes_and_edges(
-    client: Client, workflow_id: str
+    client: Client, workflow_id: str, user_id: Optional[str] = None
 ) -> dict[str, Any]:
     """
     Fetch a workflow with its nodes and edges.
@@ -36,11 +36,18 @@ async def get_workflow_with_nodes_and_edges(
     Args:
         client: Supabase client instance.
         workflow_id: UUID of the workflow.
+        user_id: Optional user ID to enforce ownership.
 
     Returns:
         Dictionary containing workflow, nodes, and edges.
     """
-    workflow = client.table("workflows").select("*").eq("id", workflow_id).single().execute()
+    workflow_query = client.table("workflows").select("*").eq("id", workflow_id)
+    if user_id:
+        workflow_query = workflow_query.eq("user_id", user_id)
+    workflow = workflow_query.single().execute()
+
+    if not workflow.data:
+        raise ValueError("Workflow not found")
     nodes = client.table("nodes").select("*").eq("workflow_id", workflow_id).execute()
     edges = client.table("edges").select("*").eq("workflow_id", workflow_id).execute()
 
@@ -182,6 +189,38 @@ async def get_execution(client: Client, execution_id: str) -> dict[str, Any]:
     """
     result = client.table("executions").select("*").eq("id", execution_id).single().execute()
     return result.data
+
+
+async def get_execution_for_user(
+    client: Client, execution_id: str, user_id: str
+) -> dict[str, Any]:
+    """
+    Fetch an execution by ID and verify ownership via workflow.
+
+    Args:
+        client: Supabase client instance.
+        execution_id: UUID of the execution.
+        user_id: UUID of the authenticated user.
+
+    Returns:
+        Execution record.
+    """
+    execution = client.table("executions").select("*").eq("id", execution_id).single().execute()
+    if not execution.data:
+        raise ValueError("Execution not found")
+
+    workflow = (
+        client.table("workflows")
+        .select("user_id")
+        .eq("id", execution.data["workflow_id"])
+        .single()
+        .execute()
+    )
+
+    if not workflow.data or workflow.data.get("user_id") != user_id:
+        raise ValueError("Execution not found")
+
+    return execution.data
 
 
 async def get_node_executions(client: Client, execution_id: str) -> list[dict[str, Any]]:

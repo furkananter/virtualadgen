@@ -2,25 +2,32 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
 import type { Workflow } from '@/types/database';
 
-export const useCreateWorkflow = () => {
+interface UpdateWorkflowParams {
+  workflowId: string;
+  updates: Partial<Workflow>;
+}
+
+export const useUpdateWorkflow = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (workflow: Partial<Workflow>) => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Not authenticated');
-
+    mutationFn: async ({ workflowId, updates }: UpdateWorkflowParams) => {
       const { data, error } = await supabase
         .from('workflows')
-        .insert({ ...workflow, user_id: session.user.id })
+        .update(updates)
+        .eq('id', workflowId)
         .select()
         .single();
 
       if (error) throw error;
       return data as Workflow;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['workflows'] });
+      queryClient.setQueryData<Workflow | null>(['workflow', data.id], (old) => {
+        if (!old) return old;
+        return { ...old, ...data };
+      });
     },
   });
 };

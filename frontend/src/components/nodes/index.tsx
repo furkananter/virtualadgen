@@ -1,7 +1,7 @@
-export * from './base-node';
-export * from './text-input-node';
-export * from './image-input-node';
-export * from './social-media-node';
-export * from './prompt-node';
-export * from './image-model-node';
-export * from './output-node';
+export { BaseNode } from './base-node';
+export { TextInputNode } from './text-input-node';
+export { ImageInputNode } from './image-input-node';
+export { SocialMediaNode } from './social-media-node';
+export { PromptNode } from './prompt-node';
+export { ImageModelNode } from './image-model-node';
+export { OutputNode } from './output-node';

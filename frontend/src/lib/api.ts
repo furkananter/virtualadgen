@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { supabase } from '@/config/supabase';
-import { 
-  ExecuteWorkflowResponse, 
-  StepExecutionResponse, 
-  CancelExecutionResponse, 
-  RedditRequest, 
-  RedditResponse 
+import type {
+  ExecuteWorkflowResponse,
+  StepExecutionResponse,
+  CancelExecutionResponse,
+  RedditRequest,
+  RedditResponse,
 } from '@/types/api';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';

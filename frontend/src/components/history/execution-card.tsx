@@ -4,13 +4,14 @@ import { Calendar, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ExecutionStatus } from './execution-status';
 import { ExecutionGallery } from './execution-gallery';
+import type { Execution, Generation } from '@/types/database';
 
 interface ExecutionCardProps {
-    execution: any; // Using any for brevity in this complex object, following 'no type' rule as much as possible while maintaining structure
+    execution: Execution & { generations?: Generation[] };
 }
 
 export const ExecutionCard = ({ execution }: ExecutionCardProps) => {
-    const imageUrls = execution.generations?.flatMap((g: any) => g.image_urls) || [];
+    const imageUrls = execution.generations?.flatMap((g) => g.image_urls) || [];
 
     return (
         <Card className="group overflow-hidden border-border/40 hover:border-primary/40 transition-all duration-300 bg-card/30">
@@ -32,7 +33,7 @@ export const ExecutionCard = ({ execution }: ExecutionCardProps) => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {execution.total_cost > 0 && (
+                    {typeof execution.total_cost === 'number' && execution.total_cost > 0 && (
                         <span className="text-xs font-mono text-primary font-bold bg-primary/5 px-2 py-1 rounded-lg border border-primary/10">
                             ${execution.total_cost.toFixed(4)}
                         </span>

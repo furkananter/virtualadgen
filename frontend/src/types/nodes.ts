@@ -4,5 +4,5 @@ export interface NodeData {
   has_breakpoint?: boolean;
   status?: string;
   execution_error?: string;
-  execution_data?: any;
+  execution_data?: Record<string, unknown> | null;
 }

@@ -17,7 +17,7 @@ import {
 import { useMemo, useRef, useCallback } from 'react';
 import type { DragEvent } from 'react';
 import { CanvasToolbar } from './canvas-toolbar';
-import { NODE_CONFIGS } from './node-palette';
+import { NODE_CONFIGS } from './node-configs';
 import type { NodeType } from '@/types/database';
 import type { NodeData } from '@/types/nodes';
 

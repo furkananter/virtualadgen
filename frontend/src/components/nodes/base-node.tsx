@@ -15,6 +15,7 @@ interface BaseNodeProps extends NodeProps<NodeData> {
   title: string;
   icon?: ReactNode;
   children: ReactNode;
+  className?: string;
 }
 
 const ConnectionHandle = ({ type, position, id }: { type: 'target' | 'source', position: Position, id?: string }) => {
@@ -48,7 +49,8 @@ export const BaseNode = ({
   icon,
   children,
   selected,
-  data
+  data,
+  className
 }: BaseNodeProps) => {
   const { debugMode } = useDebugStore();
   const copyToClipboard = (text: string, label: string) => {
@@ -85,7 +87,8 @@ export const BaseNode = ({
     <Card
       className={cn(
         "min-w-[200px] max-w-[320px] relative overflow-visible! transition-all duration-300",
-        getCardStyles(status)
+        getCardStyles(status),
+        className
       )}
       data-selected={selected}
       data-status={status}
@@ -124,7 +127,7 @@ export const BaseNode = ({
                     </div>
                   </div>
 
-                  {data.execution_data && (
+                  {data.execution_data ? (
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <label className="text-[9px] uppercase font-bold text-primary/60 tracking-widest">Raw Output</label>
@@ -136,7 +139,7 @@ export const BaseNode = ({
                         </pre>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </PopoverContent>
             </Popover>

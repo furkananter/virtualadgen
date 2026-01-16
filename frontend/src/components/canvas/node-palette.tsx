@@ -1,11 +1,5 @@
 import type { DragEvent, ReactNode } from 'react';
 import {
-  Type,
-  Image as ImageIcon,
-  Share2,
-  PenTool,
-  Brain,
-  Download,
   LayoutGrid,
   User as UserIcon,
   LogOut,
@@ -25,25 +19,59 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { toast } from 'sonner';
 import { generateMagicTemplate } from '@/lib/templates';
 import { cn } from '@/lib/utils';
-
-interface NodeConfig {
-  label: string;
-  icon: ReactNode;
-}
-
-export const NODE_CONFIGS: Record<NodeType, NodeConfig> = {
-  TEXT_INPUT: { label: 'Text Input', icon: <Type className="h-4 w-4" /> },
-  IMAGE_INPUT: { label: 'Image Input', icon: <ImageIcon className="h-4 w-4" /> },
-  SOCIAL_MEDIA: { label: 'Social Media', icon: <Share2 className="h-4 w-4" /> },
-  PROMPT: { label: 'Prompt Template', icon: <PenTool className="h-4 w-4" /> },
-  IMAGE_MODEL: { label: 'Image Model', icon: <Brain className="h-4 w-4" /> },
-  OUTPUT: { label: 'Output', icon: <Download className="h-4 w-4" /> },
-};
+import { NODE_CONFIGS } from './node-configs';
 
 const NODE_TYPES = Object.entries(NODE_CONFIGS).map(([type, config]) => ({
   type: type as NodeType,
-  ...config
+  ...config,
 }));
+
+interface NavItemProps {
+  to?: string;
+  icon: ReactNode;
+  label: string;
+  onClick?: () => void;
+  className?: string;
+  sidebarCollapsed: boolean;
+}
+
+const NavItem = ({
+  to,
+  icon,
+  label,
+  onClick,
+  className,
+  sidebarCollapsed,
+}: NavItemProps) => {
+  const content = (
+    <div
+      className={cn(
+        "flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 group relative",
+        "hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground",
+        sidebarCollapsed ? "justify-center" : "",
+        className
+      )}
+      title={sidebarCollapsed ? label : undefined}
+    >
+      <div className="shrink-0 transition-transform group-hover:scale-110">{icon}</div>
+      {!sidebarCollapsed && <span className="text-sm font-semibold truncate tracking-tight">{label}</span>}
+    </div>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} className="w-full">
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className="w-full text-left">
+      {content}
+    </button>
+  );
+};
 
 export const NodePalette = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,24 +95,6 @@ export const NodePalette = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/login');
-  };
-
-  const NavItem = ({ to, icon, label, onClick, className }: { to?: string, icon: ReactNode, label: string, onClick?: () => void, className?: string }) => {
-    const content = (
-      <div className={cn(
-        "flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 group relative",
-        "hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground",
-        sidebarCollapsed ? "justify-center" : "",
-        className
-      )} title={sidebarCollapsed ? label : undefined}>
-        <div className="shrink-0 transition-transform group-hover:scale-110">{icon}</div>
-        {!sidebarCollapsed && <span className="text-sm font-semibold truncate tracking-tight">{label}</span>}
-      </div>
-    );
-
-    const wrappedContent = to ? <Link to={to} className="w-full">{content}</Link> : <button onClick={onClick} className="w-full text-left">{content}</button>;
-
-    return wrappedContent;
   };
 
   return (
@@ -118,12 +128,28 @@ export const NodePalette = () => {
       </div>
 
       <div className="px-3 py-2 flex flex-col gap-1 overflow-y-auto no-scrollbar flex-1">
-        <NavItem to="/workflows" icon={<LayoutGrid className="h-4 w-4" />} label="All Workflows" />
+        <NavItem
+          to="/workflows"
+          icon={<LayoutGrid className="h-4 w-4" />}
+          label="All Workflows"
+          sidebarCollapsed={sidebarCollapsed}
+        />
 
         {id && (
           <div className="flex flex-col gap-1 border-t border-border/5 pt-2 mt-1">
-            <NavItem to={`/workflows/${id}/history`} icon={<History className="h-4 w-4" />} label="Archives" />
-            <NavItem onClick={handleCreateExample} icon={<Sparkles className="h-4 w-4 text-primary" />} label="Magic Template" className="hover:bg-primary/5 hover:text-primary" />
+            <NavItem
+              to={`/workflows/${id}/history`}
+              icon={<History className="h-4 w-4" />}
+              label="Archives"
+              sidebarCollapsed={sidebarCollapsed}
+            />
+            <NavItem
+              onClick={handleCreateExample}
+              icon={<Sparkles className="h-4 w-4 text-primary" />}
+              label="Magic Template"
+              className="hover:bg-primary/5 hover:text-primary"
+              sidebarCollapsed={sidebarCollapsed}
+            />
           </div>
         )}
 
@@ -140,11 +166,12 @@ export const NodePalette = () => {
 
         <div className="flex flex-col gap-1">
           {NODE_TYPES.map((node) => {
+            const Icon = node.icon;
             const dragItem = (
               <div
                 key={node.type}
                 draggable
-                onDragStart={(e) => onDragStart(e as any, node.type)}
+                onDragStart={(event) => onDragStart(event, node.type)}
                 className={cn(
                   "flex items-center gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 cursor-grab active:cursor-grabbing group",
                   "hover:bg-muted/50 hover:border-border/50 hover:shadow-sm active:scale-[0.98]",
@@ -152,7 +179,9 @@ export const NodePalette = () => {
                 )}
                 title={sidebarCollapsed ? node.label : undefined}
               >
-                <div className="text-muted-foreground group-hover:text-primary transition-transform group-hover:scale-110">{node.icon}</div>
+                <div className="text-muted-foreground group-hover:text-primary transition-transform group-hover:scale-110">
+                  <Icon className="h-4 w-4" />
+                </div>
                 {!sidebarCollapsed && <span className="text-xs font-semibold">{node.label}</span>}
               </div>
             );

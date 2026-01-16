@@ -38,9 +38,19 @@ class ImageModelExecutor(BaseNodeExecutor):
             raise ValueError("No prompt provided to image model node")
 
         model_id = config.get("model", "fal-ai/flux/schnell")
-        parameters = config.get("parameters", {})
+        parameters = dict(config.get("parameters", {}))
         num_images = parameters.get("num_images", 1)
         aspect_ratio = parameters.get("aspect_ratio", "1:1")
+
+        output_config = (context or {}).get("output_config", {})
+        if isinstance(output_config, dict):
+            if "num_images" in output_config:
+                num_images = int(output_config.get("num_images") or num_images)
+            if "aspect_ratio" in output_config:
+                aspect_ratio = str(output_config.get("aspect_ratio") or aspect_ratio)
+
+        parameters["num_images"] = num_images
+        parameters["aspect_ratio"] = aspect_ratio
 
         result = await generate_images(
             model_id=model_id,

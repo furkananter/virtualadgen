@@ -35,15 +35,16 @@ async def execute_workflow(
     """
     try:
         engine = WorkflowEngine()
-        result = await engine.execute_workflow(workflow_id)
+        result = await engine.execute_workflow(workflow_id, current_user["id"])
 
         return WorkflowExecuteResponse(
             execution_id=result["execution_id"],
             status=result["status"],
+            error_message=result.get("error_message"),
         )
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
     except Exception as e:
@@ -73,12 +74,18 @@ async def step_execution(
     """
     try:
         engine = WorkflowEngine()
-        result = await engine.step_execution(execution_id)
+        result = await engine.step_execution(execution_id, current_user["id"])
 
         return ExecutionStepResponse(
             execution_id=result["execution_id"],
             status=result["status"],
             current_node_id=result.get("current_node_id"),
+            error_message=result.get("error_message"),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
         )
     except Exception as e:
         raise HTTPException(
@@ -107,11 +114,16 @@ async def cancel_execution(
     """
     try:
         engine = WorkflowEngine()
-        result = await engine.cancel_execution(execution_id)
+        result = await engine.cancel_execution(execution_id, current_user["id"])
 
         return ExecutionCancelResponse(
             execution_id=result["execution_id"],
             status=ExecutionStatus.CANCELLED,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
         )
     except Exception as e:
         raise HTTPException(
