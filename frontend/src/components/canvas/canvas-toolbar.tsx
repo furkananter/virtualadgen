@@ -29,7 +29,7 @@ export const CanvasToolbar = () => {
   }, [isSavingGlobal]);
   const { currentWorkflow } = useWorkflowStore();
   const { nodes, edges } = useCanvasStore();
-  const { isExecuting } = useExecutionStore();
+  const { isExecuting, canStop } = useExecutionStore();
   const { isPaused, clearNodeExecutions, debugMode, toggleDebugMode } = useDebugStore();
 
   const executeWorkflow = useExecuteWorkflow();
@@ -91,13 +91,13 @@ export const CanvasToolbar = () => {
 
   return (
     <div className="flex items-center gap-2 bg-card/80 backdrop-blur-3xl p-1.5 rounded-[20px] border border-border/40 pointer-events-auto">
-      {!isPaused && !isExecuting && (
+      {!isPaused && !isExecuting() && (
         <Button
           variant="ghost"
           size="sm"
           className="h-8 gap-2 text-primary hover:text-primary hover:bg-primary/10 transition-all font-bold"
           onClick={handleRun}
-          disabled={isExecuting || !hasNodes || !currentWorkflow}
+          disabled={isExecuting() || !hasNodes || !currentWorkflow}
         >
           <Play className="h-4 w-4 fill-current" />
           Run
@@ -117,7 +117,7 @@ export const CanvasToolbar = () => {
         </Button>
       )}
 
-      {(isExecuting || isPaused) && (
+      {canStop() && (
         <Button
           variant="ghost"
           size="sm"

@@ -6,7 +6,7 @@ import type { NodeExecution, Execution } from '@/types/database';
 
 export const useRealtime = (executionId: string | null) => {
   const { setNodeExecution, setIsPaused } = useDebugStore();
-  const { setCurrentExecution, setIsExecuting } = useExecutionStore();
+  const { setCurrentExecution } = useExecutionStore();
 
   useEffect(() => {
     if (!executionId) return;
@@ -52,15 +52,14 @@ export const useRealtime = (executionId: string | null) => {
           const execution = payload.new as Execution;
           setCurrentExecution(execution);
 
-          if (execution.status === 'RUNNING') {
-            setIsExecuting(true);
-            setIsPaused(false);
-          } else if (execution.status === 'PAUSED') {
+          // isPaused is still managed by debug store for step-through functionality
+          if (execution.status === 'PAUSED') {
             setIsPaused(true);
-            setIsExecuting(false);
-          } else if (execution.status === 'COMPLETED' || execution.status === 'FAILED' || execution.status === 'CANCELLED') {
-            setIsExecuting(false);
+          } else {
             setIsPaused(false);
+          }
+
+          if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(execution.status)) {
             console.log(`Workflow finished with status: ${execution.status}`);
           }
         }
@@ -75,5 +74,5 @@ export const useRealtime = (executionId: string | null) => {
       supabase.removeChannel(nodeChannel);
       supabase.removeChannel(execChannel);
     };
-  }, [executionId, setNodeExecution, setIsPaused, setCurrentExecution, setIsExecuting]);
+  }, [executionId, setNodeExecution, setIsPaused, setCurrentExecution]);
 };

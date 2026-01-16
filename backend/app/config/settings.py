@@ -1,5 +1,6 @@
 """Application settings and configuration."""
 
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
@@ -12,11 +13,7 @@ class Settings(BaseSettings):
     fal_key: str
     rapid_api_key: str = ""  # Optional, for Reddit fallback
 
-    class Config:
-        """Pydantic settings configuration."""
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()

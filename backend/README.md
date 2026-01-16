@@ -60,7 +60,10 @@ app/
 │   └── schemas.py          # Pydantic request/response models
 │
 ├── services/
-│   ├── fal_ai.py           # FAL AI image generation
+│   ├── fal/                 # FAL AI integration (modular)
+│   │   ├── __init__.py     # Public exports
+│   │   ├── models.py       # Model configs, pricing, transforms
+│   │   └── client.py       # Image generation API client
 │   │
 │   ├── workflow_engine/    # Execution orchestration
 │   │   ├── __init__.py     # Public API (WorkflowEngine)
@@ -184,8 +187,10 @@ def merge_inputs(self, inputs: dict) -> dict:
 | Model ID | Name | Price/Image |
 |----------|------|-------------|
 | `fal-ai/flux/schnell` | FLUX Schnell | $0.003 |
-| `fal-ai/flux/dev` | FLUX Dev | $0.025 |
-| `fal-ai/stable-diffusion-xl` | SDXL | $0.002 |
+| `fal-ai/fast-lightning-sdxl` | SDXL Lightning | $0.002 |
+| `fal-ai/gpt-image-1.5` | GPT Image 1.5 | $0.02 |
+| `fal-ai/nano-banana` | Nano Banana | $0.003 |
+
 
 ### Parameters
 
@@ -199,6 +204,19 @@ def merge_inputs(self, inputs: dict) -> dict:
     "seed": int | None
 }
 ```
+
+### Parameter Normalization
+
+Each model has different API requirements. The `fal/models.py` module handles this automatically:
+
+| Model | Aspect Format | Param Name |
+|-------|---------------|------------|
+| FLUX Schnell | `portrait_9_16` | `image_size` |
+| SDXL Lightning | `9:16` | `aspect_ratio` |
+| GPT Image 1.5 | `1024x1536` | `image_size` |
+| Nano Banana | `9:16` | `aspect_ratio` |
+
+Adding a new model requires only adding an entry to `MODELS` dict in `fal/models.py`.
 
 ---
 
@@ -271,12 +289,49 @@ create policy "Users can CRUD own workflows" on workflows
 
 ---
 
-## 🧪 Scripts
+## 🧪 Testing
+
+> **Why these tests?**  
+> Reddit frequently blocks automated requests (403 Forbidden). These tests verify that the triple-fallback mechanism (Reddit → Socialgrep → Static) works correctly, ensuring the Social Media node always returns usable data.
+
+### Unit Tests (Mocked HTTP)
+
+5 passed in 0.21s ✅
+```
+</details>
+
+---
+
+### Integration Tests (Live API)
+
+Real HTTP calls to Reddit and Socialgrep. Use this to verify API keys and current block status.
+
+```bash
+source venv/bin/activate
+python scripts/test_reddit_live.py
+```
+
+<details>
+<summary><strong>Latest Results</strong> (2026-01-16)</summary>
+
+| Subreddit | Source | Status |
+|-----------|--------|--------|
+| r/skincare | Static Fallback | ⚠️ 403 Blocked |
+| r/mechanicalkeyboards | Reddit Direct | ✅ 5 posts |
+| r/espresso | Reddit Direct | ✅ 5 posts |
+
+</details>
+
+
+---
+
+## 📜 Scripts
 
 | Command | Description |
 |---------|-------------|
 | `uvicorn app.main:app --reload` | Dev server with hot reload |
-| `python -m pytest` | Run tests (when added) |
+| `pytest tests/ -v` | Run all unit tests |
+| `python scripts/test_reddit_live.py` | Live Reddit API integration test |
 
 ---
 

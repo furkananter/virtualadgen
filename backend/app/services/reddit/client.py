@@ -14,8 +14,8 @@ from .analyzer import extract_insights
 
 logger = logging.getLogger(__name__)
 
-# Use old.reddit.com - less aggressive blocking than www.reddit.com
-REDDIT_BASE_URL = "https://old.reddit.com"
+# Using standard reddit.com for better content consistency; fallback to Socialgrep handles any blocking issues
+REDDIT_BASE_URL = "https://www.reddit.com"
 
 # Socialgrep RapidAPI fallback
 SOCIALGREP_URL = "https://socialgrep.p.rapidapi.com/search/posts"

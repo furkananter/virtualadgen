@@ -16,7 +16,7 @@ export const useNodeExecutionsQuery = (executionId: string | null) => {
             return await getNodeExecutionsByExecutionId(executionId);
         },
         enabled: !!executionId,
-        refetchInterval: isExecuting ? 500 : false,
+        refetchInterval: isExecuting() ? 500 : false,
     });
 
     // Sync to debug store when data changes

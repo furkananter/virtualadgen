@@ -3,7 +3,7 @@
 from typing import Any
 
 from .base import BaseNodeExecutor
-from app.services.fal_ai import generate_images
+from app.services.fal import generate_images
 from app.services.supabase import get_supabase_client, create_generation
 
 
@@ -72,10 +72,8 @@ class ImageModelExecutor(BaseNodeExecutor):
                 cost=result["cost"],
             )
 
-        return {
-            "image_urls": result["image_urls"],
-            "cost": result["cost"],
-        }
+        # Return all FAL metadata for inspector visibility
+        return result
 
     def validate_config(self, config: dict[str, Any]) -> bool:
         """

@@ -5,24 +5,21 @@ import { useDebugStore } from '@/stores/debug-store';
 import { toast } from 'sonner';
 
 export const useCancelExecution = () => {
-    const { currentExecution, clearExecution, setIsExecuting } = useExecutionStore();
+    const { currentExecution, clearExecution } = useExecutionStore();
     const { setIsPaused } = useDebugStore();
 
     return useMutation({
         mutationFn: async () => {
-            if (!currentExecution?.id) return;
-            setIsExecuting(true);
+            if (!currentExecution?.id) throw new Error('No active execution to cancel');
             const response = await workflowApi.cancel(currentExecution.id);
             return response;
         },
         onSuccess: () => {
             clearExecution();
-            setIsExecuting(false);
             setIsPaused(false);
             toast.info('Execution cancelled');
         },
         onError: (error: Error) => {
-            setIsExecuting(false);
             toast.error(`Cancel failed: ${error.message}`);
         }
     });

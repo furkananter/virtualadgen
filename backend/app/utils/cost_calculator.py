@@ -1,37 +1,40 @@
-"""Cost calculation utilities for image generation."""
+"""Cost calculation utilities for FAL AI models."""
 
-MODEL_PRICING: dict[str, float] = {
-    "fal-ai/flux/schnell": 0.003,
-    "fal-ai/flux/dev": 0.025,
-    "fal-ai/stable-diffusion-xl": 0.002,
-}
+from app.services.fal import get_model_price
 
 DEFAULT_COST_PER_IMAGE = 0.01
 
 
 def calculate_cost(model_id: str, num_images: int) -> float:
     """
-    Calculate the cost for image generation.
+    Calculate cost for image generation.
 
     Args:
-        model_id: The FAL AI model identifier.
+        model_id: FAL AI model identifier.
         num_images: Number of images generated.
 
     Returns:
-        Total cost for the generation.
+        Total cost in USD.
     """
-    price_per_image = MODEL_PRICING.get(model_id, DEFAULT_COST_PER_IMAGE)
-    return price_per_image * num_images
+    price = get_model_price(model_id)
+    if price is None:
+        price = DEFAULT_COST_PER_IMAGE
+    return price * num_images
 
 
-def get_total_execution_cost(generation_costs: list[float]) -> float:
+def calculate_workflow_cost(generations: list[dict]) -> float:
     """
-    Calculate total cost for an entire workflow execution.
+    Calculate total cost for a workflow execution.
 
     Args:
-        generation_costs: List of individual generation costs.
+        generations: List of generation records with model_id and image count.
 
     Returns:
-        Sum of all generation costs.
+        Total cost in USD.
     """
-    return sum(generation_costs)
+    total = 0.0
+    for gen in generations:
+        model_id = gen.get("model_id", "")
+        num_images = len(gen.get("image_urls") or [])
+        total += calculate_cost(model_id, num_images)
+    return total
