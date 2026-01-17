@@ -36,11 +36,11 @@ export const ExecutionCard = ({ execution }: { execution: ExecutionWithRelations
     const inputs = extractWorkflowInputs(execution);
 
     return (
-        <Card className="overflow-hidden border-border/40 bg-card/70 hover:bg-card/90 transition-all duration-300">
+        <Card className="overflow-hidden border-border bg-card hover:bg-card/90 transition-all duration-300">
             <CardHeader className="p-4 flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-3">
                     <span className="text-[10px] font-mono opacity-40">#{execution.id.slice(0, 6)}</span>
-                    <div className="flex items-center gap-1 text-[10px] font-bold">
+                    <div className="flex items-center gap-1 text-[12px] font-bold">
                         <Calendar className="h-3 w-3 opacity-50" />
                         {format(new Date(execution.started_at), 'MMM d, HH:mm')}
                     </div>
@@ -53,13 +53,13 @@ export const ExecutionCard = ({ execution }: { execution: ExecutionWithRelations
 
             <div className="px-4 pb-3 space-y-3">
                 {inputs.length > 0 && (
-                    <div className="grid gap-1.5 p-2 rounded-xl bg-black/10">
+                    <div className="grid gap-1.5">
                         {inputs.map((input, i) => (
                             <div key={i} className="flex items-center gap-2 text-[10px]">
                                 {input.type === 'text' && <Type className="h-3 w-3 text-blue-400" />}
                                 {input.type === 'image' && <Image className="h-3 w-3 text-purple-400" />}
                                 {input.type === 'social' && <TrendingUp className="h-3 w-3 text-orange-400" />}
-                                <span className="font-bold opacity-50 truncate w-16">{input.label}:</span>
+                                <span className="font-bold opacity-50 truncate">{input.label}:</span>
                                 {input.type === 'image' ? <a href={input.value} target="_blank" rel="noopener noreferrer" className="text-primary truncate">View</a> : <span className="truncate flex-1">{input.value}</span>}
                             </div>
                         ))}
