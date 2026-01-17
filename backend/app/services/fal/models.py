@@ -1,5 +1,3 @@
-"""FAL AI model configurations and parameter normalization."""
-
 from typing import TypedDict, Literal
 
 
@@ -14,10 +12,22 @@ class ModelConfig(TypedDict, total=False):
     description: str
     aspect_format: AspectFormat
     aspect_param: str
+    image_param: str
+    image_as_list: bool
     unsupported_params: list[str]
 
 
 MODELS: dict[str, ModelConfig] = {
+    "fal-ai/flux/schnell/redux": {
+        "name": "FLUX Redux",
+        "price": 0.025,
+        "description": "High-quality Flux image-to-image with aspect ratio support",
+        "aspect_format": "snake_case",
+        "aspect_param": "image_size",
+        "image_param": "image_url",
+        "image_as_list": False,
+        "unsupported_params": [],
+    },
     "fal-ai/flux/schnell": {
         "name": "FLUX Schnell",
         "price": 0.003,
@@ -29,18 +39,12 @@ MODELS: dict[str, ModelConfig] = {
     "fal-ai/fast-lightning-sdxl": {
         "name": "SDXL Lightning",
         "price": 0.002,
-        "description": "Fast Stable Diffusion XL generation",
-        "aspect_format": "ratio",
-        "aspect_param": "aspect_ratio",
-        "unsupported_params": [],
-    },
-    "fal-ai/gpt-image-1.5": {
-        "name": "GPT Image 1.5",
-        "price": 0.02,
-        "description": "OpenAI's native multimodal image generation",
-        "aspect_format": "dimensions",
+        "description": "Fast SDXL text-to-image",
+        "aspect_format": "snake_case",
         "aspect_param": "image_size",
-        "unsupported_params": ["guidance_scale", "num_inference_steps"],
+        "image_param": "image_url",
+        "image_as_list": False,
+        "unsupported_params": ["guidance_scale"],
     },
     "fal-ai/nano-banana": {
         "name": "Nano Banana",
@@ -48,8 +52,39 @@ MODELS: dict[str, ModelConfig] = {
         "description": "Google Gemini image generation",
         "aspect_format": "ratio",
         "aspect_param": "aspect_ratio",
+        "image_param": "image_url",
+        "image_as_list": False,
         "unsupported_params": ["guidance_scale", "num_inference_steps"],
     },
+    # Edit model variants (image-to-image)
+    "fal-ai/nano-banana/edit": {
+        "name": "Nano Banana Edit",
+        "price": 0.003,
+        "description": "Google Gemini image editing",
+        "aspect_format": "ratio",
+        "aspect_param": "aspect_ratio",
+        "image_param": "image_urls",
+        "image_as_list": True,
+        "unsupported_params": ["guidance_scale", "num_inference_steps"],
+    },
+    "fal-ai/fast-lightning-sdxl/image-to-image": {
+        "name": "SDXL Lightning",
+        "price": 0.002,
+        "description": "Fast SDXL image-to-image",
+        "aspect_format": "snake_case",
+        "aspect_param": "image_size",
+        "image_param": "image_url",
+        "image_as_list": False,
+        "unsupported_params": ["guidance_scale"],
+    },
+}
+
+
+# Mapping from base model to edit variant
+EDIT_MODEL_VARIANTS: dict[str, str] = {
+    "fal-ai/nano-banana": "fal-ai/nano-banana/edit",
+    "fal-ai/fast-lightning-sdxl": "fal-ai/fast-lightning-sdxl/image-to-image",
+    "fal-ai/flux/schnell": "fal-ai/flux/schnell/redux",
 }
 
 
@@ -63,8 +98,8 @@ ASPECT_CONVERSIONS: dict[AspectFormat, dict[str, str]] = {
         "3:4": "3:4",
     },
     "snake_case": {
-        "1:1": "square",
-        "4:5": "portrait_4_3",  # Closest match
+        "1:1": "square_hd",
+        "4:5": "portrait_4_3",
         "9:16": "portrait_16_9",
         "16:9": "landscape_16_9",
         "4:3": "landscape_4_3",
@@ -72,11 +107,11 @@ ASPECT_CONVERSIONS: dict[AspectFormat, dict[str, str]] = {
     },
     "dimensions": {
         "1:1": "1024x1024",
-        "4:5": "1024x1536",
-        "9:16": "1024x1536",
-        "16:9": "1536x1024",
-        "4:3": "1536x1024",
-        "3:4": "1024x1536",
+        "4:5": "1024x1280",
+        "9:16": "1024x1792",
+        "16:9": "1792x1024",
+        "4:3": "1280x1024",
+        "3:4": "1024x1280",
     },
 }
 
@@ -99,7 +134,8 @@ def normalize_params(model_id: str, params: dict) -> dict:
     if aspect:
         target_format = config.get("aspect_format", "ratio")
         param_name = config.get("aspect_param", "aspect_ratio")
-        result[param_name] = convert_aspect_ratio(aspect, target_format)
+        converted = convert_aspect_ratio(aspect, target_format)
+        result[param_name] = converted
 
     for key in config.get("unsupported_params", []):
         result.pop(key, None)
@@ -138,3 +174,13 @@ def supports_advanced_params(model_id: str) -> bool:
         return True
     unsupported = config.get("unsupported_params", [])
     return "guidance_scale" not in unsupported
+
+
+def get_edit_model_id(model_id: str) -> str | None:
+    """Get the edit variant of a model if available."""
+    return EDIT_MODEL_VARIANTS.get(model_id)
+
+
+def supports_image_editing(model_id: str) -> bool:
+    """Check if model has an image editing variant."""
+    return model_id in EDIT_MODEL_VARIANTS

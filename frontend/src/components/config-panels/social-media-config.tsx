@@ -4,17 +4,10 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { Hash, List, SortAsc, ChevronDown } from 'lucide-react';
 import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, SocialMediaConfigData } from '@/types/workflow';
 
-interface SocialMediaConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    subreddit?: string;
-    limit?: number;
-    sort?: 'hot' | 'new' | 'top' | 'rising';
-  };
-}
-
-export const SocialMediaConfig = ({ nodeId, config }: SocialMediaConfigProps) => {
+export const SocialMediaConfig = ({ nodeId, config }: NodeConfigProps<SocialMediaConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.SOCIAL_MEDIA.color;
 
@@ -39,7 +32,7 @@ export const SocialMediaConfig = ({ nodeId, config }: SocialMediaConfigProps) =>
             onChange={(e) => updateNode(nodeId, { config: { ...config, subreddit: e.target.value } })}
             placeholder="e.g. technology"
             className="border-none h-11 px-4 bg-muted/30 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-offset-0 font-medium transition-all w-full outline-none"
-            style={{ '--tw-ring-color': `${themeColor}66` } as any}
+            style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
           />
         </Squircle>
       </div>
@@ -54,9 +47,9 @@ export const SocialMediaConfig = ({ nodeId, config }: SocialMediaConfigProps) =>
             <select
               id="sort"
               className="flex h-11 w-full border-none bg-muted/30 dark:bg-white/5 px-4 py-2 text-sm outline-none appearance-none transition-all pr-10 font-medium cursor-pointer focus-visible:ring-1 focus-visible:ring-offset-0"
-              style={{ '--tw-ring-color': `${themeColor}66` } as any}
+              style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
               value={config.sort || 'hot'}
-              onChange={(e) => updateNode(nodeId, { config: { ...config, sort: e.target.value as SocialMediaConfigProps['config']['sort'] } })}
+              onChange={(e) => updateNode(nodeId, { config: { ...config, sort: e.target.value as SocialMediaConfigData['sort'] } })}
             >
               {sortOptions.map((opt) => (
                 <option key={opt.id} value={opt.id} className="bg-card">{opt.name}</option>
@@ -81,7 +74,7 @@ export const SocialMediaConfig = ({ nodeId, config }: SocialMediaConfigProps) =>
             value={config.limit || 10}
             onChange={(e) => updateNode(nodeId, { config: { ...config, limit: parseInt(e.target.value) || 1 } })}
             className="border-none h-11 px-4 bg-muted/30 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-offset-0 font-medium transition-all w-full outline-none"
-            style={{ '--tw-ring-color': `${themeColor}66` } as any}
+            style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
           />
         </Squircle>
       </div>

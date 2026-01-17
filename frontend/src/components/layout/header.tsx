@@ -1,26 +1,13 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/auth-store';
-import { supabase } from '@/config/supabase';
 import { Button } from '@/components/ui/button';
 import { LogOut, User as UserIcon, Layers } from 'lucide-react';
+import { logout } from '@/lib/supabase';
 
 export const Header = () => {
-  const { user, clearUser } = useAuthStore();
+  const { user } = useAuthStore();
   const location = useLocation();
   const isLanding = location.pathname === '/';
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      clearUser();
-      // Clear persistence to ensure no phantom sessions on refresh
-      localStorage.clear();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout error:', error);
-      window.location.href = '/login';
-    }
-  };
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${isLanding
@@ -69,7 +56,7 @@ export const Header = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleLogout}
+                onClick={logout}
                 className="hover:bg-destructive/10 hover:text-destructive transition-colors h-8 w-8 sm:h-9 sm:w-9"
                 title="Logout"
               >

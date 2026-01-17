@@ -15,7 +15,7 @@ class ImageInputExecutor(BaseNodeExecutor):
         inputs: dict[str, object],
         config: dict[str, object],
         context: dict[str, object] | None = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, object]:
         """
         Execute image input node.
 

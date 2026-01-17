@@ -38,7 +38,7 @@ Create `.env` file:
 
 ```env
 VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJ...
 VITE_BACKEND_URL=http://localhost:8000
 ```
 
@@ -75,8 +75,9 @@ src/
 │   │   └── node-inspector.tsx   # View node input/output
 │   │
 │   ├── history/            # Execution history
-│   │   ├── execution-card.tsx
-│   │   └── execution-gallery.tsx
+│   │   ├── execution-card.tsx   # Shows model, prompt, params, images
+│   │   ├── execution-gallery.tsx
+│   │   └── execution-status.tsx
 │   │
 │   ├── layout/             # Page layout components
 │   ├── auth/               # Auth components

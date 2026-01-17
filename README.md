@@ -13,7 +13,8 @@ A visual workflow builder for AI-powered ad generation. Create image ads through
 - **Auto-save** workflows to database
 
 ### Image Generation
-- **4 AI models**: FLUX Schnell, SDXL Lightning, GPT Image 1.5, Nano Banana (via FAL AI)
+- **3 AI models**: FLUX Schnell, SDXL Lightning, Nano Banana (via FAL AI)
+- **Image-to-image**: automatic routing to edit models when image input connected
 - **Configurable parameters**: guidance scale, steps, seed
 - **Multiple outputs**: generate 1-4 images per run
 - **Aspect ratios**: 1:1, 4:5, 9:16
@@ -30,9 +31,9 @@ A visual workflow builder for AI-powered ad generation. Create image ads through
 - **Real-time status** updates via Supabase Realtime
 
 ### Backend
-- **User authentication** via Supabase Auth
+- **User authentication** via Supabase Auth (Google OAuth)
 - **Workflow persistence** with RLS policies
-- **Generation history** — view past runs with prompts, models, and outputs
+- **Generation history** — view past runs with prompts, models, parameters, and output images
 
 ---
 
@@ -53,13 +54,13 @@ A visual workflow builder for AI-powered ad generation. Create image ads through
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                       Database                               │
-│          Supabase (PostgreSQL + Auth + Realtime)            │
+│       Supabase (PostgreSQL + Auth + Storage + Realtime)     │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                    External Services                         │
-│              FAL AI (Image Gen) + Reddit API                 │
+│         FAL AI (Image Gen) + Reddit API + Apify             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -127,7 +128,7 @@ APIFY_API_KEY=apify_api_xxx  # Optional, for Reddit fallback
 ### Frontend (`frontend/.env`)
 ```
 VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_SUPABASE_PUBLISHABLE_KEY=eyJ...
 VITE_BACKEND_URL=http://localhost:8000
 ```
 
@@ -138,14 +139,18 @@ VITE_BACKEND_URL=http://localhost:8000
 ```
 ├── backend/
 │   ├── app/
-│   │   ├── api/routes/          # FastAPI endpoints
+│   │   ├── api/
+│   │   │   ├── routes/          # FastAPI endpoints
+│   │   │   └── background.py    # Background task utilities
 │   │   ├── models/              # Pydantic schemas & enums
 │   │   ├── services/
+│   │   │   ├── fal/             # FAL AI image generation
 │   │   │   ├── node_executors/  # Per-node-type execution logic
-│   │   │   ├── workflow_engine/ # Orchestration & topological sort
+│   │   │   ├── workflow_engine/ # Orchestration & execution
 │   │   │   ├── reddit/          # Social media integration
-│   │   │   └── supabase/        # Database operations
-│   │   └── config/              # Settings & environment
+│   │   │   └── supabase/        # Database & Storage operations
+│   │   ├── config/              # Settings & environment
+│   │   └── utils/               # Topological sort, cost calc
 │   └── supabase_schema.sql
 │
 ├── frontend/
@@ -158,7 +163,7 @@ VITE_BACKEND_URL=http://localhost:8000
 │   │   ├── lib/
 │   │   │   ├── mutations/       # TanStack Query mutations
 │   │   │   ├── queries/         # TanStack Query queries
-│   │   │   └── supabase/        # Supabase client helpers
+│   │   │   └── supabase/        # Supabase client & storage
 │   │   ├── stores/              # Zustand state management
 │   │   └── pages/               # Route pages
 │   └── package.json
@@ -192,10 +197,9 @@ Nodes are **topologically sorted** before execution. Each node's output feeds in
 | Limitation | Production Solution |
 |------------|---------------------|
 | **No tests** | Add pytest for backend, Vitest for frontend |
-| **No rate limiting** | Use `slowapi` or `fastapi-limiter` |
-| **Temp image URLs** | FAL URLs expire; upload to Supabase Storage |
+| **No rate limiting** | Add Redis-backed rate limiting middleware |
 | **In-process execution** | Use Celery + Redis for background jobs |
-| **Single social platform** | Add Twitter/TikTok integrations |
+| **Single social platform** | Add Meta/X/TikTok integrations |
 | **No workflow versioning** | Snapshot workflow state per execution |
 
 ---

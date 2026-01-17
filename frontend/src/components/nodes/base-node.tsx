@@ -87,7 +87,7 @@ export const BaseNode = ({
     <NodeContextMenu nodeId={id}>
       <Card
         className={cn(
-          "min-w-[240px] max-w-[300px] relative transition-all duration-500 bg-background",
+          "w-[280px] relative transition-all duration-500 bg-background",
           "rounded-[32px] border-2 outline-none! ring-0!",
           status === 'PAUSED' && "shadow-[0_0_40px_-5px_rgba(245,158,11,0.5)] animate-pulse border-amber-500",
           className

@@ -51,6 +51,7 @@ app/
 │
 ├── api/
 │   ├── deps.py             # Dependency injection (auth)
+│   ├── background.py       # Background task utilities
 │   └── routes/
 │       ├── execution.py    # /workflows/{id}/execute, /executions/{id}/step
 │       └── social.py       # /social/reddit
@@ -69,7 +70,8 @@ app/
 │   │   ├── __init__.py     # Public API (WorkflowEngine)
 │   │   ├── engine.py       # prepare_execution, step_execution
 │   │   ├── runner.py       # ExecutionRunner (node loop)
-│   │   └── helpers.py      # topological_sort, gather_inputs
+│   │   ├── helpers.py      # gather_inputs, run_single_node, utilities
+│   │   └── execution_guard.py  # Cancellation check
 │   │
 │   ├── node_executors/     # Per-node-type execution logic
 │   │   ├── base.py         # BaseNodeExecutor abstract class
@@ -89,14 +91,16 @@ app/
 │   └── supabase/           # Database operations
 │       ├── client.py       # Supabase client init
 │       ├── workflows.py    # CRUD for workflows
-│       ├── nodes.py        # CRUD for nodes
 │       ├── executions.py   # Execution state management
-│       └── generations.py  # Store generated images
+│       ├── node_executions.py  # Node execution records
+│       ├── generations.py  # Store generated images
+│       └── storage.py      # Image upload to Supabase Storage
 │
 ├── config/
 │   └── settings.py         # Pydantic settings (env vars)
 │
 └── utils/
+    ├── topological_sort.py # Kahn's algorithm for node ordering
     └── cost_calculator.py  # Per-model cost estimation
 ```
 
@@ -188,8 +192,10 @@ def merge_inputs(self, inputs: dict) -> dict:
 |----------|------|-------------|
 | `fal-ai/flux/schnell` | FLUX Schnell | $0.003 |
 | `fal-ai/fast-lightning-sdxl` | SDXL Lightning | $0.002 |
-| `fal-ai/gpt-image-1.5` | GPT Image 1.5 | $0.02 |
 | `fal-ai/nano-banana` | Nano Banana | $0.003 |
+| `fal-ai/flux/schnell/redux` | FLUX Redux | $0.025 |
+| `fal-ai/fast-lightning-sdxl/image-to-image` | SDXL Lightning Edit | $0.002 |
+| `fal-ai/nano-banana/edit` | Nano Banana Edit | $0.003 |
 
 
 ### Parameters
@@ -211,12 +217,34 @@ Each model has different API requirements. The `fal/models.py` module handles th
 
 | Model | Aspect Format | Param Name |
 |-------|---------------|------------|
-| FLUX Schnell | `portrait_9_16` | `image_size` |
-| SDXL Lightning | `9:16` | `aspect_ratio` |
-| GPT Image 1.5 | `1024x1536` | `image_size` |
-| Nano Banana | `9:16` | `aspect_ratio` |
+| FLUX Schnell | `square_hd` / `portrait_4_3` | `image_size` |
+| SDXL Lightning | `square_hd` / `portrait_4_3` | `image_size` |
+| Nano Banana | `1:1` / `9:16` | `aspect_ratio` |
+| FLUX Redux | `square_hd` / `portrait_4_3` | `image_size` |
+| SDXL Lightning Edit | `square_hd` / `portrait_4_3` | `image_size` |
+| Nano Banana Edit | `1:1` / `9:16` | `aspect_ratio` |
 
 Adding a new model requires only adding an entry to `MODELS` dict in `fal/models.py`.
+
+### Image Storage
+
+Generated images are stored in **Supabase Storage** (private bucket) for persistence:
+
+```
+FAL AI → Download image → Upload to Supabase Storage → Return signed URL
+```
+
+| Feature | Implementation |
+|---------|----------------|
+| Bucket | `generated-images` (private) |
+| Path format | `{user_id}/{uuid}.png` |
+| Access | Signed URLs (14-day expiry) |
+| RLS | Users can only access own files |
+
+**Why signed URLs?**
+- Bucket is private for security
+- No public access to user-generated content
+- URLs expire after 14 days
 
 ---
 
@@ -350,3 +378,63 @@ web: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ### Environment
 
 Set all env vars in the deployment platform's dashboard.
+
+---
+
+## 🔮 Production Considerations
+
+> The following improvements were intentionally deferred due to home task scope constraints, but would be prioritized for production:
+
+| Area | Current | Production Improvement |
+|------|---------|----------------------|
+| **Testing** | Reddit client tests only | Full test coverage with pytest-cov, integration tests |
+| **Rate Limiting** | None | Redis-backed rate limiting middleware |
+| **Retry Logic** | None | Exponential backoff for FAL AI, Reddit API calls |
+| **Error Handling** | Generic exceptions | Custom exception hierarchy with error codes |
+| **Monitoring** | Basic logging | Structured logging, APM (Datadog/Sentry) |
+| **Caching** | None | Redis cache for Reddit trends, model configs |
+| **Queue** | Background tasks | Celery/RQ for long-running image generation |
+| **Signed URL Refresh** | 14-day expiry | On-demand URL generation from stored file paths |
+| **Config Validation** | JSONB accepts anything | JSON Schema validation per node type |
+| **Workflow Versioning** | None | Snapshot workflow state on execution for history integrity |
+
+---
+
+## 🏗️ Schema Design Decisions
+
+The database schema was designed with **flexibility and extensibility** in mind:
+
+### Node Configuration as JSONB
+
+```sql
+config jsonb default '{}'
+```
+
+Each node type has different configuration requirements. Using JSONB allows:
+- **Flexibility**: New node types without schema migrations
+- **Extensibility**: Add new config fields without breaking changes
+- **Trade-off**: Validation happens at application layer, not database
+
+### Execution State Separation
+
+```
+execution (workflow-level) → node_executions (node-level)
+```
+
+This separation enables:
+- **Breakpoint debugging**: Pause at any node, inspect individual states
+- **Partial failure handling**: One node can fail while others complete
+- **Step-through execution**: Resume from any paused node
+
+### Generation History
+
+```sql
+generations (execution_id, model_id, prompt, parameters, image_urls, cost)
+```
+
+Stores complete generation context for:
+- **Reproducibility**: Same parameters can recreate similar results
+- **Cost tracking**: Per-generation cost for usage analytics
+- **Audit trail**: Full history of what was generated and when
+
+

@@ -14,7 +14,7 @@ export const OutputNode = (props: NodeProps<NodeData>) => {
                     <div className="grid grid-cols-1 gap-2">
                         {finalImages.map((url, i) => (
                             <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-border/50 bg-muted/20">
-                                <img src={url} alt={`Generation ${i}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" referrerPolicy="no-referrer" />
+                                <img src={url} alt={`Generation ${i}`} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                 <a
                                     href={url}
                                     target="_blank"

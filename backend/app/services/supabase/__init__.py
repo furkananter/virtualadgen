@@ -24,6 +24,9 @@ from .node_executions import (
 # Generations
 from .generations import create_generation
 
+# Storage
+from .storage import upload_image_from_url, upload_images_from_urls
+
 __all__ = [
     # Client
     "get_supabase_client",
@@ -41,4 +44,7 @@ __all__ = [
     "get_node_executions",
     # Generations
     "create_generation",
+    # Storage
+    "upload_image_from_url",
+    "upload_images_from_urls",
 ]

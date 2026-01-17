@@ -15,7 +15,7 @@ class OutputExecutor(BaseNodeExecutor):
         inputs: dict[str, object],
         config: dict[str, object],
         context: dict[str, object] | None = None,
-    ) -> dict[str, list[str]]:
+    ) -> dict[str, object]:
         """
         Execute output node.
 

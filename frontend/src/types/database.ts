@@ -78,6 +78,8 @@ export interface NodeExecution {
   id: string;
   execution_id: string;
   node_id: string;
+  node_type: string | null;  // Preserved from execution time
+  node_name: string | null;  // Preserved from execution time
   status: NodeExecutionStatus;
   input_data: Record<string, unknown> | null;
   output_data: Record<string, unknown> | null;

@@ -8,6 +8,8 @@ export interface ExecutionWithRelations extends Execution {
 
 /**
  * Get all executions for a workflow with related data.
+ * Note: node_type and node_name are now stored directly in node_executions,
+ * so we don't need to join with nodes table.
  */
 export const getExecutionsByWorkflowId = async (
     workflowId: string

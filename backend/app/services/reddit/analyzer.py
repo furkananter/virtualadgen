@@ -58,14 +58,21 @@ def _filter_quality_posts(posts: list[dict[str, object]]) -> list[dict[str, obje
     return quality
 
 
+def _safe_float(value: object, default: float = 0.0) -> float:
+    """Safely convert a value to float."""
+    if isinstance(value, (int, float)):
+        return float(value)
+    return default
+
+
 def _get_top_post(posts: list[dict[str, object]]) -> str:
     """Get the most engaging post title, preferring positive content."""
     if not posts:
         return str(FALLBACK_DATA["top_post"])
 
     def quality_score(p: dict[str, object]) -> float:
-        score = float(p.get("score", 0) or 0)
-        comments = float(p.get("num_comments", 0) or 0)
+        score = _safe_float(p.get("score", 0))
+        comments = _safe_float(p.get("num_comments", 0))
         # Penalize posts with low score but high comments (controversial)
         if score < 50 and comments > 50:
             return score * 0.5
@@ -90,10 +97,7 @@ def _extract_keywords(
     for post in posts:
         title = str(post.get("title", ""))
         raw_score = post.get("score", 1)
-        try:
-            score = float(raw_score) if raw_score else 1
-        except (ValueError, TypeError):
-            score = 1
+        score = _safe_float(raw_score, 1.0)
 
         # Clean title
         title = re.sub(r"^\[.*?\]\s*", "", title)  # Remove [tags]

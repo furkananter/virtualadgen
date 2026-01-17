@@ -8,16 +8,10 @@ import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
 import { useState, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, PromptConfigData } from '@/types/workflow';
 
-interface PromptConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    template?: string;
-    ai_optimize?: boolean;
-  };
-}
-
-export const PromptConfig = ({ nodeId, config }: PromptConfigProps) => {
+export const PromptConfig = ({ nodeId, config }: NodeConfigProps<PromptConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.PROMPT.color;
   const [copiedVar, setCopiedVar] = useState<string | null>(null);
@@ -71,8 +65,8 @@ export const PromptConfig = ({ nodeId, config }: PromptConfigProps) => {
               value={config.template || ''}
               onChange={(e) => updateNode(nodeId, { config: { ...config, template: e.target.value } })}
               placeholder="Use {{trends}} or {{text}} to inject variables..."
-              className="min-h-[200px] bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all resize-none p-5 font-mono text-sm leading-relaxed w-full outline-none"
-              style={{ '--tw-ring-color': `${themeColor}66` } as any}
+              className="min-h-50 bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all resize-none p-5 font-mono text-sm leading-relaxed w-full outline-none"
+              style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
             />
           </Squircle>
         </div>
@@ -80,25 +74,25 @@ export const PromptConfig = ({ nodeId, config }: PromptConfigProps) => {
         <Squircle cornerRadius={14} cornerSmoothing={1} className="overflow-hidden shadow-xs">
           <div className={cn(
             "flex items-center justify-between p-4 border transition-all duration-300 w-full",
-            config.ai_optimize
-              ? "bg-primary/10 border-primary/30 dark:bg-primary/5 shadow-sm"
-              : "bg-muted/30 dark:bg-white/5 border-border/80 dark:border-white/10"
+            config.ai_optimize !== false
+              ? "bg-amber-500/20 border-border/80 dark:border-white/10 rounded-xl"
+              : "bg-muted/30 dark:bg-white/5 border-border/80 dark:border-white/10 rounded-xl"
           )}>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <Label htmlFor="ai-optimize" className={cn(
                   "text-[11px] font-bold uppercase tracking-widest transition-colors",
-                  config.ai_optimize ? "text-primary" : "text-foreground/90"
+                  config.ai_optimize !== false ? "text-amber-500" : "text-foreground/90"
                 )}>AI Optimizer</Label>
-                <Sparkles className={cn("h-3 w-3 transition-colors", config.ai_optimize ? "text-primary/60" : "text-muted-foreground/40")} />
+                <Sparkles className={cn("h-3 w-3 transition-colors", config.ai_optimize !== false ? "text-amber-500/60" : "text-muted-foreground/40")} />
               </div>
-              <p className="text-[10px] font-medium text-muted-foreground/70 leading-tight">Refines prompt using Llama-3 AI for better results</p>
+              <p className="text-[10px] font-medium text-muted-foreground/70 leading-tight">Refines prompt using AI for better results</p>
             </div>
             <Switch
               id="ai-optimize"
-              checked={config.ai_optimize || false}
+              checked={config.ai_optimize ?? true}
               onCheckedChange={(checked) => updateNode(nodeId, { config: { ...config, ai_optimize: checked } })}
-              className="data-[state=checked]:bg-primary shrink-0 transition-transform active:scale-95"
+              className="data-[state=checked]:bg-amber-500/20 shrink-0 transition-transform active:scale-95"
             />
           </div>
         </Squircle>

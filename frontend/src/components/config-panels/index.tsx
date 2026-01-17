@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import type { CSSProperties } from 'react';
 
 
 export const ConfigPanel = () => {
@@ -135,7 +136,7 @@ export const ConfigPanel = () => {
                     <Input
                       id="node-name"
                       className="bg-muted/30 border-none dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-offset-0 transition-all h-11 px-4 text-sm font-medium w-full outline-none"
-                      style={{ '--tw-ring-color': `${themeColor}66` } as any}
+                      style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
                       value={selectedNode.data.label || ''}
                       onChange={(e) => updateNode(selectedNode.id, { label: e.target.value })}
                     />

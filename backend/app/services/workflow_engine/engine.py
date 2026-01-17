@@ -1,5 +1,7 @@
 """Workflow execution engine - public API."""
 
+from typing import cast
+
 from supabase import Client
 
 from app.models.enums import ExecutionStatus
@@ -44,13 +46,18 @@ class WorkflowEngine:
 
         sorted_node_ids = topological_sort(nodes, edges)
         execution = await create_execution(self.client, workflow_id)
-        await create_node_executions(self.client, execution["id"], sorted_node_ids)
+        execution_id = cast(str, execution["id"])
+        # Pass sorted nodes to preserve node_type and node_name in execution history
+        node_map = {node["id"]: node for node in nodes}
+        sorted_nodes = [node_map[nid] for nid in sorted_node_ids]
+        await create_node_executions(self.client, execution_id, sorted_nodes)
 
         return await self.runner.run(
-            execution_id=execution["id"],
+            execution_id=execution_id,
             nodes=nodes,
             edges=edges,
             sorted_node_ids=sorted_node_ids,
+            user_id=user_id,
         )
 
     async def prepare_execution(self, workflow_id: str, user_id: str) -> dict:
@@ -74,15 +81,20 @@ class WorkflowEngine:
 
         sorted_node_ids = topological_sort(nodes, edges)
         execution = await create_execution(self.client, workflow_id)
-        await create_node_executions(self.client, execution["id"], sorted_node_ids)
+        execution_id = cast(str, execution["id"])
+        # Pass sorted nodes to preserve node_type and node_name in execution history
+        node_map = {node["id"]: node for node in nodes}
+        sorted_nodes = [node_map[nid] for nid in sorted_node_ids]
+        await create_node_executions(self.client, execution_id, sorted_nodes)
 
         return {
-            "execution_id": execution["id"],
+            "execution_id": execution_id,
             # PENDING until background execution actually starts
             "status": ExecutionStatus.PENDING,
             "nodes": nodes,
             "edges": edges,
             "sorted_node_ids": sorted_node_ids,
+            "user_id": user_id,
         }
 
     async def _run_execution_background(
@@ -91,6 +103,7 @@ class WorkflowEngine:
         nodes: list[dict],
         edges: list[dict],
         sorted_node_ids: list[str],
+        user_id: str,
     ) -> dict:
         """
         Run workflow execution in background. Internal method.
@@ -104,6 +117,7 @@ class WorkflowEngine:
             nodes: List of node records.
             edges: List of edge records.
             sorted_node_ids: Topologically sorted node IDs.
+            user_id: UUID of the authenticated user.
 
         Returns:
             Execution result with status.
@@ -113,6 +127,7 @@ class WorkflowEngine:
             nodes=nodes,
             edges=edges,
             sorted_node_ids=sorted_node_ids,
+            user_id=user_id,
         )
 
     async def step_execution(self, execution_id: str, user_id: str) -> dict:
@@ -135,8 +150,9 @@ class WorkflowEngine:
                 "current_node_id": None,
             }
 
+        workflow_id = cast(str, execution["workflow_id"])
         workflow_data = await get_workflow_with_nodes_and_edges(
-            self.client, execution["workflow_id"], user_id=user_id
+            self.client, workflow_id, user_id=user_id
         )
         nodes = workflow_data["nodes"]
         edges = workflow_data["edges"]
@@ -157,6 +173,7 @@ class WorkflowEngine:
             nodes=nodes,
             edges=edges,
             sorted_node_ids=sorted_node_ids,
+            user_id=user_id,
             start_index=paused_idx,
         )
 

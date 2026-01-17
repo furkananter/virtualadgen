@@ -7,6 +7,7 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { uploadImageInput } from '@/lib/supabase/storage';
 
 export const ImageInputNode = (props: NodeProps<NodeData>) => {
     const updateNode = useCanvasStore((state) => state.updateNode);
@@ -24,7 +25,7 @@ export const ImageInputNode = (props: NodeProps<NodeData>) => {
         setIsDragging(false);
     }, []);
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
+    const handleDrop = useCallback(async (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
@@ -35,14 +36,23 @@ export const ImageInputNode = (props: NodeProps<NodeData>) => {
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64 = event.target?.result as string;
-            updateNode(props.id, { config: { ...props.data.config, image_url: base64 } });
-            toast.success('Image updated');
-        };
-        reader.readAsDataURL(file);
-    }, [props.id, props.data.config, updateNode]);
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error('Image size should be less than 5MB');
+            return;
+        }
+
+        const toastId = toast.loading('Uploading image...');
+        try {
+            const publicUrl = await uploadImageInput(file);
+            const currentNode = useCanvasStore.getState().nodes.find((node) => node.id === props.id);
+            const currentConfig = (currentNode?.data?.config ?? {}) as Record<string, unknown>;
+            updateNode(props.id, { config: { ...currentConfig, image_url: publicUrl } });
+            toast.success('Image updated', { id: toastId });
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Upload failed';
+            toast.error(message, { id: toastId });
+        }
+    }, [props.id, updateNode]);
 
     return (
         <BaseNode title="Image Input" icon={<ImageIcon className="h-4 w-4" />} {...props}>
@@ -61,7 +71,6 @@ export const ImageInputNode = (props: NodeProps<NodeData>) => {
                             src={props.data.config.image_url as string}
                             alt="Input"
                             className="h-24 w-full object-cover shadow-inner"
-                            referrerPolicy="no-referrer"
                         />
                         {isDragging && (
                             <div className="absolute inset-0 bg-primary/20 backdrop-blur-[2px] flex items-center justify-center">

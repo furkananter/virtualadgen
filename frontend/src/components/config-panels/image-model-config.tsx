@@ -4,41 +4,33 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { Cpu, Settings, ChevronDown } from 'lucide-react';
 import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, ImageModelConfigData, ImageModelParameters } from '@/types/workflow';
 
-interface ImageModelConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    model?: string;
-    parameters?: Record<string, unknown> & {
-      guidance_scale?: number;
-      num_inference_steps?: number;
-      seed?: number;
-    };
-  };
-}
+type ImageModelParamKey = keyof ImageModelParameters;
 
-type ImageModelParamKey = 'guidance_scale' | 'num_inference_steps' | 'seed';
-
-// Models that don't support guidance_scale and num_inference_steps
-const SIMPLE_PARAM_MODELS = [
-  'fal-ai/gpt-image-1.5',
-  'fal-ai/nano-banana',
-];
-
-export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
+export const ImageModelConfig = ({ nodeId, config }: NodeConfigProps<ImageModelConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.IMAGE_MODEL.color;
 
   const models = [
     { id: 'fal-ai/flux/schnell', name: 'FLUX Schnell' },
     { id: 'fal-ai/fast-lightning-sdxl', name: 'SDXL Lightning' },
-    { id: 'fal-ai/gpt-image-1.5', name: 'GPT Image 1.5' },
     { id: 'fal-ai/nano-banana', name: 'Nano Banana' },
   ];
 
+  // Derive excluded model IDs from the models list
+  const excludedModelIds = models.map((m) => m.id);
+
   const selectedModel = config.model || 'fal-ai/flux/schnell';
-  const showAdvancedParams = !SIMPLE_PARAM_MODELS.includes(selectedModel);
   const parameters = config.parameters || {};
+
+  // Show advanced params if any relevant param is defined, or if model supports advanced params
+  const hasDefinedParams =
+    parameters.num_inference_steps !== undefined ||
+    parameters.guidance_scale !== undefined ||
+    parameters.seed !== undefined;
+  const showAdvancedParams = hasDefinedParams || !excludedModelIds.includes(selectedModel);
 
   const handleParamChange = (key: ImageModelParamKey, value: number | undefined) => {
     updateNode(nodeId, {
@@ -59,16 +51,19 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
           <Cpu className="h-3.5 w-3.5" style={{ color: themeColor }} />
           <Label className="text-[11px] font-bold uppercase tracking-widest text-foreground/80">Selected Model</Label>
         </div>
+
         <div className="relative group">
           <Squircle cornerRadius={14} cornerSmoothing={1} className="overflow-hidden shadow-sm shadow-black/5">
             <select
               className="flex h-11 w-full border-none bg-muted/30 dark:bg-white/5 px-4 py-2 text-sm focus-visible:ring-1 focus-visible:ring-offset-0 outline-none appearance-none transition-all pr-10 font-medium cursor-pointer"
-              style={{ '--tw-ring-color': `${themeColor}66` } as any}
+              style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
               value={selectedModel}
               onChange={(e) => updateNode(nodeId, { config: { ...config, model: e.target.value } })}
             >
               {models.map((m) => (
-                <option key={m.id} value={m.id} className="bg-card">{m.name}</option>
+                <option key={m.id} value={m.id} className="bg-card">
+                  {m.name}
+                </option>
               ))}
             </select>
           </Squircle>
@@ -91,7 +86,7 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
                   type="number"
                   step="0.1"
                   className="bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all h-11 px-4 text-sm font-medium w-full outline-none"
-                  style={{ '--tw-ring-color': `${themeColor}66` } as any}
+                  style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
                   value={parameters.guidance_scale ?? 7.5}
                   onChange={(e) => {
                     const v = parseFloat(e.target.value);
@@ -106,7 +101,7 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
                 <Input
                   type="number"
                   className="bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all h-11 px-4 text-sm font-medium w-full outline-none"
-                  style={{ '--tw-ring-color': `${themeColor}66` } as any}
+                  style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
                   value={parameters.num_inference_steps ?? 20}
                   onChange={(e) => {
                     const v = parseInt(e.target.value, 10);
@@ -124,7 +119,7 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
                 type="number"
                 placeholder="Random"
                 className="bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all h-11 px-4 text-sm font-medium w-full outline-none"
-                style={{ '--tw-ring-color': `${themeColor}66` } as any}
+                style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
                 value={parameters.seed ?? ''}
                 onChange={(e) => {
                   const parsed = parseInt(e.target.value, 10);
@@ -138,4 +133,3 @@ export const ImageModelConfig = ({ nodeId, config }: ImageModelConfigProps) => {
     </div>
   );
 };
-

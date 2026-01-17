@@ -16,7 +16,7 @@ export const WorkflowHistoryPage = () => {
         <div className="min-h-screen bg-background text-foreground flex flex-col">
             {/* Premium Header */}
             <header className="border-b bg-card/10 backdrop-blur-2xl sticky top-0 z-50">
-                <div className="container mx-auto px-4 md:px-8 h-20 flex items-center justify-between">
+                <div className="w-full px-4 md:px-8 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-5">
                         <button
                             className="group flex items-center justify-center w-10 h-10 rounded-2xl bg-muted/50 hover:bg-primary/10 hover:text-primary transition-all duration-300 active:scale-90 border border-border/50"
@@ -48,7 +48,7 @@ export const WorkflowHistoryPage = () => {
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 md:px-8 py-10 flex-1">
+            <main className="w-full px-4 md:px-8 py-10 flex-1">
                 {isLoading ? (
                     <div className="py-20">
                         <LoadingScreen message="Extracting generation history..." />

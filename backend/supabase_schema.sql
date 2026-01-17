@@ -88,7 +88,9 @@ create table executions (
 create table node_executions (
   id uuid primary key default gen_random_uuid(),
   execution_id uuid references executions(id) on delete cascade not null,
-  node_id uuid references nodes(id) on delete cascade not null,
+  node_id uuid not null,  -- Note: No FK to nodes as nodes may be deleted/recreated on workflow save
+  node_type text,         -- Preserved node type (survives node deletion)
+  node_name text,         -- Preserved node name (survives node deletion)
   status node_execution_status default 'PENDING',
   input_data jsonb,
   output_data jsonb,
@@ -199,3 +201,81 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
+
+-- =============================================
+-- STORAGE BUCKET & RLS POLICIES
+-- =============================================
+-- NOTE: Run this in Supabase Dashboard > Storage > Policies
+-- Or use the Supabase Management API to create the bucket
+
+-- Create bucket (run via Dashboard or API, not SQL):
+-- Bucket name: image-inputs
+-- Public: false
+-- File size limit: 10MB
+-- Allowed MIME types: image/*
+
+-- Storage RLS Policies (run in SQL Editor):
+-- Files are stored as: {user_id}/{filename}
+
+-- Allow authenticated users to upload to their own folder
+create policy "Users can upload to own folder"
+on storage.objects for insert
+to authenticated
+with check (
+  bucket_id = 'image-inputs' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Allow users to read their own files
+create policy "Users can view own files"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'image-inputs' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Allow users to update their own files
+create policy "Users can update own files"
+on storage.objects for update
+to authenticated
+using (
+  bucket_id = 'image-inputs' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+)
+with check (
+  bucket_id = 'image-inputs' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Allow users to delete their own files
+create policy "Users can delete own files"
+on storage.objects for delete
+to authenticated
+using (
+  bucket_id = 'image-inputs' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- =============================================
+-- GENERATED IMAGES BUCKET RLS POLICIES
+-- =============================================
+-- Bucket name: generated-images
+-- Public: false (private bucket with signed URLs)
+-- File size limit: 20MB
+
+-- Allow service role to upload (backend uploads via service key)
+create policy "Service can upload generated images"
+on storage.objects for insert
+to service_role
+with check (bucket_id = 'generated-images');
+
+-- Allow authenticated users to view their own generated images
+create policy "Users can view own generated images"
+on storage.objects for select
+to authenticated
+using (
+  bucket_id = 'generated-images' 
+  and (storage.foldername(name))[1] = auth.uid()::text
+);
+

@@ -130,3 +130,70 @@ def load_previous_outputs(node_executions: list[dict]) -> tuple[dict, float]:
             if "cost" in ne["output_data"]:
                 total_cost += ne["output_data"]["cost"]
     return outputs, total_cost
+
+
+async def run_single_node(
+    client,
+    execution_id: str,
+    user_id: str,
+    node: dict,
+    edges: list[dict],
+    nodes: list[dict],
+    outputs: dict,
+) -> dict:
+    """
+    Execute a single node with proper status updates.
+
+    Args:
+        client: Supabase client instance.
+        execution_id: UUID of the execution.
+        user_id: UUID of the authenticated user.
+        node: Node record to execute.
+        edges: List of edge records.
+        nodes: List of all node records.
+        outputs: Dictionary of previous node outputs.
+
+    Returns:
+        Node execution output.
+    """
+    from app.services.supabase import update_node_execution
+    from app.models.enums import NodeExecutionStatus
+
+    node_id = node["id"]
+    inputs = gather_inputs(node_id, edges, outputs)
+
+    await update_node_execution(
+        client,
+        execution_id,
+        node_id,
+        NodeExecutionStatus.RUNNING,
+        input_data=inputs,
+    )
+
+    context: dict = {"execution_id": execution_id, "user_id": user_id}
+    if node.get("type") == NodeType.IMAGE_MODEL.value:
+        output_config = get_output_config(node_id, nodes, edges)
+        if output_config:
+            context["output_config"] = output_config
+
+    try:
+        output = await execute_node(node, inputs, context)
+    except Exception as e:
+        await update_node_execution(
+            client,
+            execution_id,
+            node_id,
+            NodeExecutionStatus.FAILED,
+            error_message=str(e),
+        )
+        raise
+
+    await update_node_execution(
+        client,
+        execution_id,
+        node_id,
+        NodeExecutionStatus.COMPLETED,
+        output_data=output,
+    )
+
+    return output

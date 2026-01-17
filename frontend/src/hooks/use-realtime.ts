@@ -36,7 +36,6 @@ export const useRealtime = (executionId: string | null) => {
       )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('✅ Connected to node executions channel');
           getNodeExecutionsByExecutionId(executionId)
             .then((nodes) => {
               if (!isActive) return;
@@ -47,8 +46,8 @@ export const useRealtime = (executionId: string | null) => {
                 }
               });
             })
-            .catch((error) => {
-              console.warn('Failed to sync node executions after subscribe', error);
+            .catch(() => {
+              // Silently handle sync failures
             });
         }
       });
@@ -80,15 +79,11 @@ export const useRealtime = (executionId: string | null) => {
           }
 
           if (['COMPLETED', 'FAILED', 'CANCELLED'].includes(execution.status)) {
-            console.log(`Workflow finished with status: ${execution.status}`);
+            // Workflow finished
           }
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Connected to execution status channel');
-        }
-      });
+      .subscribe();
 
     return () => {
       isActive = false;

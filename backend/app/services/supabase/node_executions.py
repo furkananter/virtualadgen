@@ -1,17 +1,14 @@
 """Node execution database operations."""
 
-import logging
 from typing import Optional
 
 from supabase import Client
 
 from app.models.enums import NodeExecutionStatus
 
-logger = logging.getLogger(__name__)
-
 
 async def create_node_executions(
-    client: Client, execution_id: str, node_ids: list[str]
+    client: Client, execution_id: str, nodes: list[dict[str, object]]
 ) -> list[dict[str, object]]:
     """
     Create node execution records for all nodes in a workflow.
@@ -19,7 +16,7 @@ async def create_node_executions(
     Args:
         client: Supabase client instance.
         execution_id: UUID of the execution.
-        node_ids: List of node UUIDs.
+        nodes: List of node records with id, type, and name.
 
     Returns:
         List of created node execution records.
@@ -27,10 +24,12 @@ async def create_node_executions(
     records: list[dict[str, object]] = [
         {
             "execution_id": execution_id,
-            "node_id": node_id,
+            "node_id": str(node.get("id", "")),
+            "node_type": str(node.get("type", "")),
+            "node_name": str(node.get("name", "")),
             "status": NodeExecutionStatus.PENDING.value,
         }
-        for node_id in node_ids
+        for node in nodes
     ]
     result = client.table("node_executions").insert(records).execute()
     return [dict(item) for item in result.data] if result.data else []
@@ -83,11 +82,6 @@ async def update_node_execution(
     data = result.data
     if data and isinstance(data, list) and len(data) > 0:
         return dict(data[0])
-    logger.warning(
-        "No node execution record found for update: execution_id=%s, node_id=%s",
-        execution_id,
-        node_id,
-    )
     return None
 
 

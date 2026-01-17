@@ -5,13 +5,13 @@ import {
 } from 'lucide-react';
 import type { NodeType } from '@/types/database';
 import { useAuthStore } from '@/stores/auth-store';
-import { useNavigate, useParams } from 'react-router-dom';
-import { supabase } from '@/config/supabase';
+import { useParams } from 'react-router-dom';
 import { useReactFlow } from 'reactflow';
 import { useCanvasStore } from '@/stores/canvas-store';
 import { toast } from 'sonner';
 import { generateAIWorkflow } from '@/lib/templates';
 import { cn } from '@/lib/utils';
+import { logout } from '@/lib/supabase';
 
 import { LogoSection } from './node-palette/logo-section';
 import { NavigationLinks } from './node-palette/navigation-links';
@@ -21,7 +21,6 @@ import { UserSection } from './node-palette/user-section';
 export const NodePalette = () => {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuthStore();
-  const navigate = useNavigate();
   const {
     setNodes,
     setEdges,
@@ -46,11 +45,6 @@ export const NodePalette = () => {
   const onDragStart = (event: DragEvent<HTMLDivElement>, nodeType: NodeType) => {
     event.dataTransfer.setData('application/reactflow', nodeType);
     event.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/login');
   };
 
   return (
@@ -88,7 +82,7 @@ export const NodePalette = () => {
       <UserSection
         user={user}
         sidebarCollapsed={sidebarCollapsed}
-        handleLogout={handleLogout}
+        handleLogout={logout}
       />
     </aside>
   );

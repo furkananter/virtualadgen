@@ -28,7 +28,7 @@ export const WorkflowsPage = () => {
       });
       navigate(`/workflows/${workflow.id}`);
     } catch (error) {
-      console.error('Failed to create workflow:', error);
+      toast.error(`Failed to create workflow: ${(error as Error).message}`);
     }
   };
 

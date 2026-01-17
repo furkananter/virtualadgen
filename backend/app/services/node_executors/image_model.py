@@ -1,7 +1,9 @@
-"""Image model node executor."""
-
 from .base import BaseNodeExecutor
 from app.services.fal import generate_images
+from app.services.fal.models import (
+    get_edit_model_id,
+    get_model_config,
+)
 from app.services.supabase import get_supabase_client, create_generation
 
 
@@ -9,7 +11,8 @@ class ImageModelExecutor(BaseNodeExecutor):
     """
     Executor for IMAGE_MODEL nodes.
 
-    Calls FAL AI to generate images and records the generation.
+        Calls FAL AI to generate images and records the generation.
+        Automatically routes to edit models when image input is provided.
     """
 
     async def execute(
@@ -23,6 +26,7 @@ class ImageModelExecutor(BaseNodeExecutor):
 
         Args:
             inputs: Must contain 'prompt' from connected prompt node.
+                    May contain 'image_url' for image-to-image generation.
             config: Must contain 'model' and optionally 'parameters'.
             context: Must contain 'execution_id' for recording generation.
 
@@ -39,10 +43,11 @@ class ImageModelExecutor(BaseNodeExecutor):
         model_id = str(config.get("model", "fal-ai/flux/schnell"))
 
         raw_params = config.get("parameters", {})
-        parameters = dict(raw_params) if isinstance(raw_params, dict) else {}
+        core_params = dict(raw_params) if isinstance(raw_params, dict) else {}
+        parameters = core_params.copy()
 
-        num_images = parameters.get("num_images", 1)
-        aspect_ratio = parameters.get("aspect_ratio", "1:1")
+        num_images = core_params.get("num_images", 1)
+        aspect_ratio = core_params.get("aspect_ratio", "1:1")
 
         output_config = (context or {}).get("output_config", {})
         if isinstance(output_config, dict):
@@ -54,6 +59,25 @@ class ImageModelExecutor(BaseNodeExecutor):
         parameters["num_images"] = num_images
         parameters["aspect_ratio"] = aspect_ratio
 
+        # Check for image input and route to edit model if available
+        image_url = merged.get("image_url")
+        if image_url:
+            edit_model_id = get_edit_model_id(model_id)
+            if edit_model_id:
+                model_id = edit_model_id
+
+            # Dynamically set image parameter based on model config
+            model_config = get_model_config(model_id)
+            if model_config:
+                image_param = model_config.get("image_param", "image_url")
+                image_as_list = model_config.get("image_as_list", False)
+                if image_as_list:
+                    parameters[image_param] = [str(image_url)]
+                else:
+                    parameters[image_param] = str(image_url)
+            else:
+                # Fallback to standard
+                parameters["image_url"] = str(image_url)
         # We assume generate_images handles these types correctly and returns dict[str, object]
         result = await generate_images(
             model_id=model_id,
@@ -64,6 +88,17 @@ class ImageModelExecutor(BaseNodeExecutor):
             parameters=parameters,
         )
 
+        # Upload FAL images to Supabase Storage for persistence
+        fal_image_urls = list(result.get("image_urls", []))  # type: ignore
+        storage_image_urls = fal_image_urls  # fallback
+
+        if context and "user_id" in context:
+            from app.services.supabase import upload_images_from_urls
+
+            user_id = str(context["user_id"])
+            storage_image_urls = await upload_images_from_urls(user_id, fal_image_urls)
+            result["image_urls"] = storage_image_urls
+
         if context and "execution_id" in context:
             execution_id = str(context["execution_id"])
             client = get_supabase_client()
@@ -73,7 +108,7 @@ class ImageModelExecutor(BaseNodeExecutor):
                 model_id=model_id,
                 prompt=prompt,
                 parameters=parameters,
-                image_urls=list(result.get("image_urls", [])),  # type: ignore
+                image_urls=storage_image_urls,
                 aspect_ratio=str(aspect_ratio),
                 cost=float(result.get("cost", 0.0)),  # type: ignore
             )

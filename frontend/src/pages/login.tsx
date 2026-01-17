@@ -59,7 +59,7 @@ export const LoginPage = () => {
                     </h1>
                     <p className="text-muted-foreground/80 text-sm md:text-base leading-relaxed font-medium px-4">
                       Enter your workspace to continue building.
-                    </p>
+                    </p> 
                   </div>
 
                   {/* Action Area */}

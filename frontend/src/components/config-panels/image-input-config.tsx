@@ -7,15 +7,11 @@ import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import { uploadImageInput } from '@/lib/supabase/storage';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, ImageInputConfigData } from '@/types/workflow';
 
-interface ImageInputConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    image_url?: string;
-  };
-}
-
-export const ImageInputConfig = ({ nodeId, config }: ImageInputConfigProps) => {
+export const ImageInputConfig = ({ nodeId, config }: NodeConfigProps<ImageInputConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.IMAGE_INPUT.color;
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -34,13 +30,19 @@ export const ImageInputConfig = ({ nodeId, config }: ImageInputConfigProps) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      updateNode(nodeId, { config: { ...config, image_url: base64 } });
-      toast.success('Image uploaded locally');
-    };
-    reader.readAsDataURL(file);
+    const toastId = toast.loading('Uploading image...');
+    try {
+      const publicUrl = await uploadImageInput(file);
+      updateNode(nodeId, { config: { ...config, image_url: publicUrl } });
+      toast.success('Image uploaded', { id: toastId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Upload failed';
+      toast.error(message, { id: toastId });
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   }, [nodeId, config, updateNode]);
 
   return (
@@ -110,7 +112,7 @@ export const ImageInputConfig = ({ nodeId, config }: ImageInputConfigProps) => {
           </div>
           {config.image_url?.startsWith('data:') && (
             <Squircle cornerRadius={6} cornerSmoothing={1}>
-              <span className="text-[8px] font-black px-1.5 py-0.5 uppercase tracking-tighter" style={{ backgroundColor: `${themeColor}22`, color: themeColor }}>Local</span>
+              <span className="text-[8px] font-black px-1.5 py-0.5 uppercase tracking-tighter" style={{ backgroundColor: `${themeColor}22`, color: themeColor }}>Legacy</span>
             </Squircle>
           )}
         </div>
@@ -118,10 +120,17 @@ export const ImageInputConfig = ({ nodeId, config }: ImageInputConfigProps) => {
           <Input
             id="image_url"
             value={config.image_url?.startsWith('data:') ? '' : (config.image_url || '')}
-            onChange={(e) => updateNode(nodeId, { config: { ...config, image_url: e.target.value } })}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value.startsWith('data:')) {
+                toast.error('Base64 data URLs are not supported. Please upload instead.');
+                return;
+              }
+              updateNode(nodeId, { config: { ...config, image_url: value } });
+            }}
             placeholder="Paste URL..."
             className="border-none h-11 px-4 bg-muted/30 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-offset-0 transition-all text-sm font-medium w-full outline-none"
-            style={{ '--tw-ring-color': `${themeColor}66` } as any}
+            style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
           />
         </Squircle>
       </div>

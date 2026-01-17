@@ -21,7 +21,7 @@ class PromptExecutor(BaseNodeExecutor):
         inputs: dict[str, object],
         config: dict[str, object],
         context: dict[str, object] | None = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, object]:
         """
         Execute prompt template node.
 
@@ -44,7 +44,12 @@ class PromptExecutor(BaseNodeExecutor):
             if optimized_prompt:
                 prompt = optimized_prompt
 
-        return {"prompt": prompt}
+        # Build output, pass through image_url if present for image-to-image
+        output: dict[str, object] = {"prompt": prompt}
+        if "image_url" in merged_inputs:
+            output["image_url"] = str(merged_inputs["image_url"])
+
+        return output
 
     async def _optimize_with_ai(self, raw_prompt: str) -> str | None:
         """Use FAL AI LLM to optimize the prompt for image generation."""
@@ -73,9 +78,8 @@ class PromptExecutor(BaseNodeExecutor):
 
             if isinstance(result, dict) and "output" in result:
                 return str(result["output"]).strip()
-        except Exception as e:
-            # Fallback to raw prompt on error
-            logger.error("AI Optimization failed: %s", e, exc_info=True)
+        except Exception:
+            logger.warning("AI prompt optimization failed", exc_info=True)
             return None
 
         return None

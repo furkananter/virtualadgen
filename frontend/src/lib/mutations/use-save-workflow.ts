@@ -115,7 +115,6 @@ export const useSaveWorkflow = () => {
             });
         },
         onError: (error: Error) => {
-            console.error('Save error:', error);
             toast.error(`Save failed: ${error.message}`);
         }
     });

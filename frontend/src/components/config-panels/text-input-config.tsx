@@ -4,15 +4,10 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { Type } from 'lucide-react';
 import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, TextInputConfigData } from '@/types/workflow';
 
-interface TextInputConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    value?: string;
-  };
-}
-
-export const TextInputConfig = ({ nodeId, config }: TextInputConfigProps) => {
+export const TextInputConfig = ({ nodeId, config }: NodeConfigProps<TextInputConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.TEXT_INPUT.color;
 
@@ -33,7 +28,7 @@ export const TextInputConfig = ({ nodeId, config }: TextInputConfigProps) => {
               onChange={(e) => updateNode(nodeId, { config: { ...config, value: e.target.value } })}
               placeholder="Enter your content here..."
               className="min-h-[160px] bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all resize-none p-4 leading-relaxed text-sm font-medium w-full outline-none"
-              style={{ '--tw-ring-color': `${themeColor}66` } as any}
+              style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
             />
           </Squircle>
           <div className="absolute bottom-4 right-4 opacity-0 group-focus-within:opacity-100 transition-opacity pointer-events-none">

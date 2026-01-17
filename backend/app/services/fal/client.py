@@ -1,5 +1,3 @@
-"""FAL AI client for image generation."""
-
 import os
 
 import fal_client

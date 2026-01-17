@@ -101,7 +101,7 @@ export const WorkflowCanvas = () => {
         position,
         data: {
           label: config?.label || type,
-          config: {}
+          config: type === 'PROMPT' ? { ai_optimize: true } : {}
         },
         selected: true,
       };

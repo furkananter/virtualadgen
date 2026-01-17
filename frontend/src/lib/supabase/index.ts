@@ -1,5 +1,5 @@
 // Auth
-export { getSession, getCurrentUserId } from './auth';
+export { getSession, getCurrentUserId, logout } from './auth';
 
 // Workflows
 export {

@@ -65,8 +65,7 @@ async def fetch_subreddit_posts(
     # Validate and sanitize subreddit name
     try:
         validated_subreddit = validate_subreddit(subreddit)
-    except ValueError as e:
-        logger.warning(f"Invalid subreddit: {e}. Using fallback.")
+    except ValueError:
         return dict(FALLBACK_DATA)
 
     # Try Reddit direct API first
@@ -74,14 +73,11 @@ async def fetch_subreddit_posts(
 
     # Fallback to Apify if Reddit fails
     if not posts and settings.apify_api_key:
-        logger.info(f"Trying Apify fallback for r/{validated_subreddit}")
         posts = await _fetch_from_apify(validated_subreddit, sort, limit)
 
     # Return insights or static fallback
     if posts:
         return extract_insights(posts, validated_subreddit)
-
-    logger.warning(f"All sources failed for r/{subreddit}. Using static fallback.")
     return dict(FALLBACK_DATA)
 
 
@@ -105,8 +101,20 @@ async def _fetch_from_reddit(
             return _parse_reddit_posts(data)
         return []
 
-    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
-        logger.warning(f"Reddit API failed for r/{subreddit}: {e}. Using fallback.")
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code
+        url = str(exc.request.url)
+        if 400 <= status < 500:
+            logger.warning("Reddit API client error %d for %s: %s", status, url, exc)
+        else:
+            logger.error("Reddit API server error %d for %s: %s", status, url, exc)
+        return []
+    except httpx.RequestError as exc:
+        url = str(exc.request.url) if exc.request else "unknown"
+        logger.error("Reddit API network error for %s: %s", url, exc)
+        return []
+    except ValueError as exc:
+        logger.warning("Reddit API JSON parse error for r/%s: %s", subreddit, exc)
         return []
 
 
@@ -125,8 +133,6 @@ async def _fetch_from_apify(
 
             # Map sort to Apify's subredditSort parameter
             valid_sorts = ["relevance", "hot", "top", "new", "comments", "rising"]
-            if sort not in valid_sorts:
-                logger.debug(f"Unknown sort '{sort}' for Apify, defaulting to 'hot'")
             apify_sort = sort if sort in valid_sorts else "hot"
 
             run_input = {
@@ -162,11 +168,10 @@ async def _fetch_from_apify(
         # Offload blocking I/O to thread pool
         posts = await asyncio.to_thread(_run_apify_sync)
 
-        logger.info(f"Apify fetched {len(posts)} posts for r/{subreddit}")
         return posts
 
-    except Exception as e:
-        logger.warning(f"Apify fallback failed for r/{subreddit}: {e}")
+    except Exception as exc:
+        logger.warning("Apify fetch failed for r/%s: %s", subreddit, exc)
         return []
 
 

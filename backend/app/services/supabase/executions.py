@@ -1,6 +1,7 @@
 """Execution database operations."""
 
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Optional, Mapping, cast
 
 from supabase import Client
 
@@ -30,7 +31,9 @@ async def create_execution(client: Client, workflow_id: str) -> dict[str, object
     )
     data = result.data
     if data and isinstance(data, list) and len(data) > 0:
-        return dict(data[0])
+        first_item = data[0]
+        if isinstance(first_item, Mapping):
+            return dict(first_item)
     raise ValueError(f"Failed to create execution for workflow_id={workflow_id}")
 
 
@@ -54,26 +57,31 @@ async def update_execution_status(
     Returns:
         Updated execution record.
     """
-    update_data: dict[str, object] = {"status": status.value}
+    update_payload: dict[str, str | float] = {"status": status.value}
 
     if error_message:
-        update_data["error_message"] = error_message
+        update_payload["error_message"] = error_message
     if total_cost is not None:
-        update_data["total_cost"] = total_cost
+        update_payload["total_cost"] = total_cost
     if status in (
         ExecutionStatus.COMPLETED,
         ExecutionStatus.FAILED,
         ExecutionStatus.CANCELLED,
     ):
-        update_data["finished_at"] = "now()"
+        update_payload["finished_at"] = datetime.now(timezone.utc).isoformat()
 
     result = (
-        client.table("executions").update(update_data).eq("id", execution_id).execute()
+        client.table("executions")
+        .update(update_payload)
+        .eq("id", execution_id)
+        .execute()
     )
 
     data = result.data
     if data and isinstance(data, list) and len(data) > 0:
-        return dict(data[0])
+        first_item = data[0]
+        if isinstance(first_item, Mapping):
+            return dict(first_item)
     raise ValueError(f"Execution not found: execution_id={execution_id}")
 
 
@@ -91,7 +99,10 @@ async def get_execution(client: Client, execution_id: str) -> dict[str, object]:
     result = (
         client.table("executions").select("*").eq("id", execution_id).single().execute()
     )
-    return dict(result.data) if result.data else {}
+    data = result.data
+    if data and isinstance(data, Mapping):
+        return dict(data)
+    return {}
 
 
 async def get_execution_for_user(
@@ -114,18 +125,24 @@ async def get_execution_for_user(
     execution = (
         client.table("executions").select("*").eq("id", execution_id).single().execute()
     )
-    if not execution.data:
+    exec_data = execution.data
+    if not exec_data or not isinstance(exec_data, Mapping):
         raise ValueError("Execution not found")
 
+    workflow_id = cast(str, exec_data.get("workflow_id", ""))
     workflow = (
         client.table("workflows")
         .select("user_id")
-        .eq("id", execution.data["workflow_id"])
+        .eq("id", workflow_id)
         .single()
         .execute()
     )
 
-    if not workflow.data or workflow.data.get("user_id") != user_id:
+    wf_data = workflow.data
+    if not wf_data or not isinstance(wf_data, Mapping):
         raise ValueError("Execution not found")
 
-    return dict(execution.data)
+    if wf_data.get("user_id") != user_id:
+        raise ValueError("Execution not found")
+
+    return dict(exec_data)

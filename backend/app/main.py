@@ -1,10 +1,12 @@
-"""FastAPI application entry point."""
-
+import logging
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.api.routes import execution, social
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s", force=True)
+logger = logging.getLogger(__name__)
 
 
 app = FastAPI(

@@ -4,16 +4,10 @@ import { useCanvasStore } from '@/stores/canvas-store';
 import { Maximize2, Layers, ChevronDown } from 'lucide-react';
 import { Squircle } from '@squircle-js/react';
 import { NODE_CONFIGS } from '@/components/canvas/node-configs';
+import type { CSSProperties } from 'react';
+import type { NodeConfigProps, OutputConfigData } from '@/types/workflow';
 
-interface OutputConfigProps {
-  nodeId: string;
-  config: Record<string, unknown> & {
-    aspect_ratio?: string;
-    num_images?: number;
-  };
-}
-
-export const OutputConfig = ({ nodeId, config }: OutputConfigProps) => {
+export const OutputConfig = ({ nodeId, config }: NodeConfigProps<OutputConfigData>) => {
   const updateNode = useCanvasStore((state) => state.updateNode);
   const themeColor = NODE_CONFIGS.OUTPUT.color;
 
@@ -29,7 +23,7 @@ export const OutputConfig = ({ nodeId, config }: OutputConfigProps) => {
             <select
               id="aspect_ratio"
               className="flex h-11 w-full border-none bg-muted/30 dark:bg-white/5 px-4 py-2 text-sm focus-visible:ring-1 focus-visible:ring-offset-0 outline-none appearance-none transition-all pr-10 font-medium cursor-pointer"
-              style={{ '--tw-ring-color': `${themeColor}66` } as any}
+              style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
               value={config?.aspect_ratio || '1:1'}
               onChange={(e) => updateNode(nodeId, { config: { ...config, aspect_ratio: e.target.value } })}
             >
@@ -54,7 +48,7 @@ export const OutputConfig = ({ nodeId, config }: OutputConfigProps) => {
             min={1}
             max={4}
             className="border-none h-11 px-4 bg-muted/30 dark:bg-white/5 focus-visible:ring-1 focus-visible:ring-offset-0 font-medium transition-all w-full outline-none"
-            style={{ '--tw-ring-color': `${themeColor}66` } as any}
+            style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
             value={config?.num_images || 1}
             onChange={(e) => {
               const parsed = parseInt(e.target.value, 10);

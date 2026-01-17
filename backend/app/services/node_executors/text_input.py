@@ -15,7 +15,7 @@ class TextInputExecutor(BaseNodeExecutor):
         inputs: dict[str, object],
         config: dict[str, object],
         context: dict[str, object] | None = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, object]:
         """
         Execute text input node.
 
