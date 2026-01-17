@@ -70,7 +70,7 @@ export const ImageInputNode = (props: NodeProps<NodeData>) => {
                         <img
                             src={props.data.config.image_url as string}
                             alt="Input"
-                            className="h-24 w-full object-cover shadow-inner"
+                            className="h-24 w-full object-cover shadow-inner transition-transform duration-500 group-hover:scale-105"
                         />
                         {isDragging && (
                             <div className="absolute inset-0 bg-primary/20 backdrop-blur-[2px] flex items-center justify-center">

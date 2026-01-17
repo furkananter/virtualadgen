@@ -57,11 +57,11 @@ export const ImageInputConfig = ({ nodeId, config }: NodeConfigProps<ImageInputC
         />
 
         {config.image_url ? (
-          <Squircle cornerRadius={16} cornerSmoothing={1} className="relative group w-full aspect-video overflow-hidden border border-border/40 bg-muted/20 shadow-sm">
+          <Squircle cornerRadius={16} cornerSmoothing={1} className="relative group w-full overflow-hidden border border-border/40 bg-muted/20 shadow-sm flex items-center justify-center min-h-[120px]">
             <img
               src={config.image_url}
               alt="Preview"
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="w-full h-auto max-h-80 object-contain transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
               <Squircle cornerRadius={10} cornerSmoothing={1}>
