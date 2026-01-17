@@ -62,7 +62,7 @@ const TEMPLATES = [
             { id: 'social', type: 'SOCIAL_MEDIA', position: { x: 450, y: 350 }, data: { label: 'Social Media', config: { subreddit: 'technology', limit: 10 } } },
             { id: 'prompt', type: 'PROMPT', position: { x: 800, y: 350 }, data: { label: 'Prompt Template', config: { template: 'Cinematic hero shot of {{text}} in a futuristic, minimal lab setting. Dynamic blue and violet volumetric lighting. Top trending topic {{top_post}} should inspire the digital HUD elements in the background. Targeted at {{community_vibe}}. Hyper-realistic materials, carbon fiber and glass textures, shot on Sony A7R V, 8k.' } } },
             { id: 'model', type: 'IMAGE_MODEL', position: { x: 1150, y: 350 }, data: { label: 'FLUX Engine', config: { model: 'fal-ai/flux/schnell' } } },
-            { id: 'output', type: 'OUTPUT', position: { x: 1500, y: 350 }, data: { label: 'Output', config: { aspect_ratio: '16:9', num_images: 1 } } }
+            { id: 'output', type: 'OUTPUT', position: { x: 1500, y: 350 }, data: { label: 'Output', config: { aspect_ratio: '1:1', num_images: 1 } } }
         ],
         edges: [
             { source: 'text', target: 'social' },
@@ -79,7 +79,7 @@ const TEMPLATES = [
             { id: 'social', type: 'SOCIAL_MEDIA', position: { x: 450, y: 350 }, data: { label: 'Social Media', config: { subreddit: 'streetwear', limit: 10 } } },
             { id: 'prompt', type: 'PROMPT', position: { x: 800, y: 350 }, data: { label: 'Prompt Template', config: { template: 'Authentic street-style lookbook shot of {{text}}. Gritty urban Tokyo background with neon light reflections on wet pavement. Capturing the essence of {{community_vibe}}. Style inspired by {{keywords}}. Realistic film grain, shot on 35mm Leica M6, natural lighting, high fashion streetwear aesthetic.' } } },
             { id: 'model', type: 'IMAGE_MODEL', position: { x: 1150, y: 350 }, data: { label: 'FLUX Engine', config: { model: 'fal-ai/flux/schnell' } } },
-            { id: 'output', type: 'OUTPUT', position: { x: 1500, y: 350 }, data: { label: 'Output', config: { aspect_ratio: '2:3', num_images: 1 } } }
+            { id: 'output', type: 'OUTPUT', position: { x: 1500, y: 350 }, data: { label: 'Output', config: { aspect_ratio: '4:5', num_images: 1 } } }
         ],
         edges: [
             { source: 'text', target: 'social' },
