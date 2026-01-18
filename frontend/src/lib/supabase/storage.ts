@@ -1,7 +1,7 @@
 import { supabase } from '@/config/supabase';
 
 const IMAGE_INPUT_BUCKET = 'image-inputs';
-const SIGNED_URL_TTL = 60 * 60; // 1 hour
+const SIGNED_URL_TTL = 60 * 60 * 24 * 365; // 365 days
 
 const buildFilePath = (userId: string, file: File): string => {
   const hasDot = file.name.lastIndexOf('.') !== -1;
