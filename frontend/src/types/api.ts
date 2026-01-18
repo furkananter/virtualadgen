@@ -33,5 +33,5 @@ export interface RedditPost {
 
 export interface RedditResponse {
   posts: RedditPost[];
-  trends: string[];
+  keywords: string[];
 }

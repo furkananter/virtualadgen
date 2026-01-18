@@ -64,7 +64,7 @@ export const PromptConfig = ({ nodeId, config }: NodeConfigProps<PromptConfigDat
               id="template"
               value={config.template || ''}
               onChange={(e) => updateNode(nodeId, { config: { ...config, template: e.target.value } })}
-              placeholder="Use {{trends}} or {{text}} to inject variables..."
+              placeholder="Use {{keywords}} or {{text}} to inject variables..."
               className="min-h-50 bg-muted/30 dark:bg-white/5 border-none focus-visible:ring-1 focus-visible:ring-offset-0 transition-all resize-none p-5 font-mono text-sm leading-relaxed w-full outline-none"
               style={{ '--tw-ring-color': `${themeColor}66` } as CSSProperties}
             />

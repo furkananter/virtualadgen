@@ -34,7 +34,7 @@ async def get_reddit_data(
         current_user: Authenticated user from JWT.
 
     Returns:
-        Reddit posts and extracted trends.
+        Reddit posts and extracted keywords.
     """
     try:
         result = await fetch_subreddit_posts(
@@ -61,16 +61,16 @@ async def get_reddit_data(
             if isinstance(post, dict)
         ]
 
-        raw_trends = result.get("trends", [])
-        trends = (
-            [str(item) for item in raw_trends if isinstance(item, str)]
-            if isinstance(raw_trends, list)
+        raw_keywords = result.get("keywords", [])
+        keywords = (
+            [str(item) for item in raw_keywords if isinstance(item, str)]
+            if isinstance(raw_keywords, list)
             else []
         )
 
         return RedditResponse(
             posts=posts,
-            trends=trends,
+            keywords=keywords,
         )
 
     except Exception as e:

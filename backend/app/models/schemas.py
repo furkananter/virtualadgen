@@ -51,4 +51,4 @@ class RedditResponse(BaseModel):
     """Response containing Reddit data."""
 
     posts: list[RedditPost]
-    trends: list[str]
+    keywords: list[str]

@@ -35,7 +35,6 @@ async def test_subreddit(subreddit: str) -> None:
         is_fallback = result.get("fallback", False)
         posts = result.get("posts", [])
         keywords = result.get("keywords", [])
-        trends = result.get("trends", [])
         vibe = result.get("community_vibe", "")
         top_post = result.get("top_post", "")
 
@@ -52,7 +51,6 @@ async def test_subreddit(subreddit: str) -> None:
             else f"\n📝 Top Post: {top_post}"
         )
         print(f"🔑 Keywords: {keywords[:6]}")
-        print(f"📈 Trends: {trends[:5]}")
         print(f"🎭 Community Vibe: {vibe}")
 
         if posts:

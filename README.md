@@ -22,7 +22,7 @@ A visual workflow builder for AI-powered ad generation. Create image ads through
 ### Social Listening
 - **Reddit integration** with fallback mechanism
 - Fetches trending posts and extracts keywords
-- Inject trends into prompts with `{{trends}}` variable
+- Inject trends into prompts with `{{keywords}}` variable
 
 ### Debugging
 - **Breakpoints** on any node
