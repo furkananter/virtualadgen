@@ -57,50 +57,44 @@ export const ImageInputConfig = ({ nodeId, config }: NodeConfigProps<ImageInputC
         />
 
         {config.image_url ? (
-          <Squircle cornerRadius={16} cornerSmoothing={1} className="relative group w-full overflow-hidden border border-border/40 bg-muted/20 shadow-sm flex items-center justify-center min-h-[120px]">
+          <div className="relative group w-full overflow-hidden border border-border/40 bg-muted/20 shadow-sm rounded-2xl">
             <img
               src={config.image_url}
               alt="Preview"
               className="w-full h-auto max-h-80 object-contain transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
-              <Squircle cornerRadius={10} cornerSmoothing={1}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="h-8 gap-1.5 bg-white/10 border-white/20 text-white hover:bg-white/20 border"
-                >
-                  <Upload className="h-3.5 w-3.5" />
-                  Change
-                </Button>
-              </Squircle>
-              <Squircle cornerRadius={10} cornerSmoothing={1}>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => updateNode(nodeId, { config: { ...config, image_url: '' } })}
-                  className="h-8 gap-1.5"
-                >
-                  <X className="h-3.5 w-3.5" />
-                  Remove
-                </Button>
-              </Squircle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-8 gap-1.5 bg-white/10 border-white/20 text-white hover:bg-white/20 border rounded-xl"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Change
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => updateNode(nodeId, { config: { ...config, image_url: '' } })}
+                className="h-8 gap-1.5 rounded-xl"
+              >
+                <X className="h-3.5 w-3.5" />
+                Remove
+              </Button>
             </div>
-          </Squircle>
+          </div>
         ) : (
-          <Squircle cornerRadius={16} cornerSmoothing={1}>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-8 border-2 border-dashed border-border/40 bg-muted/10 transition-all flex flex-col items-center justify-center gap-2 group hover:bg-muted/20"
-              style={{ borderColor: `${themeColor}22` }}
-            >
-              <div className="p-3 bg-background rounded-full shadow-sm group-hover:scale-110 transition-transform">
-                <Upload className="h-5 w-5" style={{ color: themeColor }} />
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Upload Image</p>
-            </button>
-          </Squircle>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-8 border-2 border-dashed border-border/40 bg-muted/10 transition-all flex flex-col items-center justify-center gap-2 group hover:bg-muted/20 rounded-2xl cursor-pointer"
+            style={{ borderColor: `${themeColor}22` }}
+          >
+            <div className="p-3 bg-background rounded-full shadow-sm group-hover:scale-110 transition-transform">
+              <Upload className="h-5 w-5" style={{ color: themeColor }} />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Upload Image</p>
+          </div>
         )}
       </div>
 
