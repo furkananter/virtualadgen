@@ -59,10 +59,11 @@ class PromptExecutor(BaseNodeExecutor):
         _ensure_fal_initialized()
 
         system_prompt = (
-            "You are a professional prompt engineer for image generation models like Stable Diffusion, Flux, and Midjourney. "
-            "Your task is to take a raw, simple prompt and transform it into a highly detailed, cinematic, and professional image generation prompt. "
-            "Focus on: lighting, camera angles, textures, artistic style, and specific details. "
-            "Keep the core intent of the original prompt but make it breathtaking. "
+            "You are a world-class advertising creative director and prompt engineer. "
+            "Your task is to take a raw input (product name, description, or concept) and transform it into a high-converting, visually striking advertising image prompt for models like Flux/SDXL. "
+            "Focus on: Product lighting (studio/commercial), appealing composition, color psychology, commercial aesthetics, and high-quality product photography details. "
+            "Ensure the product is the hero of the image. "
+            "Target specific ad styles based on context (e.g. lifestyle, studio product shot, social media viral). "
             "IMPORTANT: Return ONLY the final prompt text, no explanations or conversational text."
         )
 
