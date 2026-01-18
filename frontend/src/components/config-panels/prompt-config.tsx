@@ -27,7 +27,6 @@ export const PromptConfig = ({ nodeId, config }: NodeConfigProps<PromptConfigDat
 
   const variables = [
     { name: 'text', desc: 'Raw text input content' },
-    { name: 'image_url', desc: 'Uploaded image URL' },
     { name: 'keywords', desc: 'Extracted topics from Reddit' },
     { name: 'community_vibe', desc: 'Description of the audience' },
     { name: 'top_post', desc: 'Most engaging post title' },
