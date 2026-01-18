@@ -22,9 +22,9 @@ const extractWorkflowInputs = (execution: ExecutionWithRelations) => {
         const type = ne.node_type || 'TEXT_INPUT';
         if (type === 'TEXT_INPUT' && out.text) inputs.push({ type: 'text', label: ne.node_name || 'Text', value: out.text });
         else if (type === 'IMAGE_INPUT' && out.image_url) inputs.push({ type: 'image', label: ne.node_name || 'Image', value: out.image_url });
-        else if (type === 'SOCIAL_MEDIA' && out.trends) {
-            const val = Array.isArray(out.trends) ? out.trends.join(', ') : out.trends;
-            inputs.push({ type: 'social', label: ne.node_name || 'Trends', value: val });
+        else if (type === 'SOCIAL_MEDIA' && out.keywords) {
+            const val = Array.isArray(out.keywords) ? out.keywords.join(', ') : out.keywords;
+            inputs.push({ type: 'social', label: ne.node_name || 'Social Media', value: val });
         }
     }
     return inputs;
