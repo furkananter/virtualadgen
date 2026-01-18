@@ -59,19 +59,22 @@ class PromptExecutor(BaseNodeExecutor):
         _ensure_fal_initialized()
 
         system_prompt = (
-            "You are a world-class advertising creative director and prompt engineer. "
-            "Your task is to take a raw input (product name, description, or concept) and transform it into a high-converting, visually striking advertising image prompt for models like Flux/SDXL. "
-            "Focus on: Product lighting (studio/commercial), appealing composition, color psychology, commercial aesthetics, and high-quality product photography details. "
-            "Ensure the product is the hero of the image. "
-            "Target specific ad styles based on context (e.g. lifestyle, studio product shot, social media viral). "
-            "IMPORTANT: Return ONLY the final prompt text, no explanations or conversational text."
+            "You are an expert Performance Marketing Creative Strategist. "
+            "Your goal is to write image prompts that generate high-CTR (Click-Through Rate) advertising visuals for social media (Instagram/Facebook/TikTok). "
+            "Transform the input into a crisp, commercial product image description. "
+            "Rules: "
+            "1. The product/subject must be the absolute hero: clear, sharp, and center stage. "
+            "2. Lighting: Use professional commercial lighting (softbox, rim lighting) to make the product pop. "
+            "3. Background: Keep it complementary but not distracting. Avoid clutter. "
+            "4. Aesthetics: Bright, vibrant, and expensive-looking. Think high-end e-commerce or Apple-style minimalism. "
+            "5. NO chatty text, NO '/imagine' commands. Return ONLY the prompt string."
         )
 
         try:
             result = await fal_client.run_async(
                 "openrouter/router",
                 arguments={
-                    "model": "google/gemini-2.0-flash-001",
+                    "model": "anthropic/claude-haiku-4.5",
                     "prompt": raw_prompt,
                     "system_prompt": system_prompt,
                 },
