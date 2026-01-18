@@ -33,14 +33,10 @@ def extract_insights(
     # Generate community vibe description
     community_vibe = _analyze_community_vibe(keywords, subreddit)
 
-    # Legacy trends field for backward compatibility
-    trends = keywords[:6] if keywords else list(FALLBACK_DATA["trends"])
-
     return {
         "posts": posts,
         "top_post": top_post,
         "keywords": keywords,
-        "trends": trends,
         "community_vibe": community_vibe,
         "fallback": False,
     }

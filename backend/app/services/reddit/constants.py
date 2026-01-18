@@ -9,7 +9,6 @@ SUBREDDIT_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_]{2,20}$")
 # Fallback data when Reddit blocks us or validation fails
 FALLBACK_DATA = {
     "posts": [],
-    "trends": ["trending", "viral", "aesthetic", "premium", "luxury"],
     "top_post": "Latest trending styles and innovations",
     "keywords": ["modern", "aesthetic", "quality", "premium"],
     "community_vibe": "quality-focused enthusiasts",

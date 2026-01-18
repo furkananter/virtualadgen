@@ -30,7 +30,6 @@ export const PromptConfig = ({ nodeId, config }: NodeConfigProps<PromptConfigDat
     { name: 'keywords', desc: 'Extracted topics from Reddit' },
     { name: 'community_vibe', desc: 'Description of the audience' },
     { name: 'top_post', desc: 'Most engaging post title' },
-    { name: 'trends', desc: 'Trending keywords (legacy)' },
   ];
 
   const handleCopy = async (name: string) => {
