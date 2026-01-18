@@ -22,5 +22,8 @@ if (!supabaseUrl || !supabaseKey) {
 export const supabase = createClient(supabaseUrl || '', supabaseKey || '', {
   auth: {
     storageKey: SUPABASE_AUTH_STORAGE_KEY,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
   },
 });
